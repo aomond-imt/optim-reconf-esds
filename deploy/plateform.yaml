@@ -1,0 +1,32 @@
+general:
+  interferences: off
+
+nodes:
+  count: 3
+  implementations:
+    - 0 aggregator-deploy.py
+    - 1-@ measurement-deploy.py
+
+  groups: # id group_id
+    - 0 0
+    - 1 1
+    - 2 2
+
+  arguments:
+    all: {
+      stressConso: 0,
+      idleConso: 1.339,
+      commsConso: 0.16,
+      bandwidth: 6250,
+      freq_polling: 1,
+      datasize: 257
+    }
+
+interfaces:
+  eth0:
+    type: "wireless"
+    links:
+      - all 50kbps 0s all
+    txperfs:
+      - all 50kbps 0s  # Perf de chaque noeud sur cette interface
+    nodes: all
