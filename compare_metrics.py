@@ -1,8 +1,8 @@
 import yaml
 
-with open("deploy-60s-direct.yaml") as f:
+with open("deploy-60s-direct-30.yaml") as f:
     standard = yaml.safe_load(f)
-with open("deploy-60s-direct-termination_k.yaml") as f:
+with open("deploy-60s-direct-termination_k-30.yaml") as f:
     termination_k = yaml.safe_load(f)
 
 standard_res = {

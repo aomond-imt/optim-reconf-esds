@@ -13,25 +13,20 @@ duration = 60
 
 
 def coordination(api, remaining, bandwidth, c, datasize, end_uptime, freq_polling, interface_name, coord_name, tot_msg_rcv, tot_msg_sent):
-    while len(remaining) > 0 and c() < end_uptime:
-        # for msrmt_id in remaining:
-        if c() + datasize * 3 / bandwidth >= end_uptime:
-            break
-        # api.send(interface_name, api.node_id, datasize, msrmt_id)
-        api.send(interface_name, (api.node_id, coord_name), datasize, 1)
-        tot_msg_sent += 1
-        # TODO: why need *2
-        code, data = api.receivet(interface_name, timeout=min(datasize * 2 / bandwidth, end_uptime - c()))
-        tot_msg_rcv += 1
-        if data is not None:
-            msrmt_id_res, _ = data
-            if msrmt_id_res is not None:
-                api.log(f"Removing {msrmt_id_res}")
-                remaining.remove(msrmt_id_res)
-                if len(remaining) == 0:
-                    api.log(f"{coord_name} clear")
+    """Fetch coordination once for <coord_name>"""
+    api.send(interface_name, (api.node_id, coord_name), datasize, 1)
+    tot_msg_sent += 1
+    # TODO: why need *2
+    code, data = api.receivet(interface_name, timeout=min(datasize * 2 / bandwidth, end_uptime - c()))
+    tot_msg_rcv += 1
+    if data is not None:
+        msrmt_id_res, _ = data
+        if msrmt_id_res is not None:
+            api.log(f"Removing {msrmt_id_res}")
+            remaining.remove(msrmt_id_res)
+            if len(remaining) == 0:
+                api.log(f"{coord_name} clear")
 
-        api.wait(min(freq_polling, end_uptime - c()))
     return tot_msg_rcv, tot_msg_sent
 
 
@@ -75,10 +70,21 @@ def execute(api: Node):
         tot_uptimes += 1
         node_cons.set_power(idle_conso)
         end_uptime = uptime + d
-        tot_msg_rcv, tot_msg_sent = coordination(api, remaining_install, bandwidth, c, datasize, end_uptime, freq_polling, interface_name, "install", tot_msg_rcv, tot_msg_sent)
-        execute_action(actions_done, actions_duration, api, node_cons, idle_conso, remaining_install, stress_conso, "install")
-        tot_msg_rcv, tot_msg_sent = coordination(api, remaining_run, bandwidth, c, datasize, end_uptime, freq_polling, interface_name, "run", tot_msg_rcv, tot_msg_sent)
-        execute_action(actions_done, actions_duration, api, node_cons, idle_conso, remaining_run, stress_conso, "run")
+        while (len(remaining_install) > 0 or len(remaining_run) > 0) and c() < end_uptime:
+            if c() + datasize * 3 / bandwidth >= end_uptime:
+                break
+
+            # Install
+            tot_msg_rcv, tot_msg_sent = coordination(api, remaining_install, bandwidth, c, datasize, end_uptime, freq_polling, interface_name, "install", tot_msg_rcv, tot_msg_sent)
+            if len(remaining_install) == 0:
+                execute_action(actions_done, actions_duration, api, node_cons, idle_conso, remaining_install, stress_conso, "install")
+
+            # Anticipated run
+            tot_msg_rcv, tot_msg_sent = coordination(api, remaining_run, bandwidth, c, datasize, end_uptime, freq_polling, interface_name, "run", tot_msg_rcv, tot_msg_sent)
+            if len(remaining_install) == 0:
+                execute_action(actions_done, actions_duration, api, node_cons, idle_conso, remaining_run, stress_conso, "run")
+
+            api.wait(min(freq_polling, end_uptime - c()))
         api.turn_off()
         node_cons.set_power(0)
         if len(remaining_install) == 0 and len(remaining_run) == 0:

@@ -2,7 +2,7 @@ general:
   interferences: off
 
 nodes:
-  count: 31
+  count: 6
   implementations:
     - 0 aggregator-deploy.py
     - 1-@ measurement-deploy.py
@@ -11,7 +11,7 @@ nodes:
     all: {
       stressConso: 1.358,
       idleConso: 1.339,
-      nb_msrmt: 30,
+      nb_msrmt: 5,
       commsConso: 0.16,
       bandwidth: 6250,
       freq_polling: 3,
