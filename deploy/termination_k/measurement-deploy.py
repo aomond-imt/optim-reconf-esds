@@ -56,8 +56,7 @@ def execute(api: Node):
         while not all(aggregator_acks.values()) and c() < end_uptime:
             code, data = api.receivet(interface_name, timeout=end_uptime - c())
             tot_msg_rcv += 1
-            if data is not None:  # TODO: refacto + jolie
-                print(data)
+            if data is not None:
                 sender_id, coord_name = data
                 if sender_id == aggregator_id and not aggregator_acks[coord_name]:
                     api.log("Sending ack to aggregator")

@@ -2,27 +2,19 @@ general:
   interferences: off
 
 nodes:
-  count: 6
+  count: 31
   implementations:
     - 0 aggregator-deploy.py
     - 1-@ measurement-deploy.py
-
-  groups: # id group_id
-    - 0 0
-    - 1 1
-    - 2 2
-    - 3 3
-    - 4 4
-    - 5 5
 
   arguments:
     all: {
       stressConso: 1.358,
       idleConso: 1.339,
-      nb_msrmt: 5,
+      nb_msrmt: 30,
       commsConso: 0.16,
       bandwidth: 6250,
-      freq_polling: 6,
+      freq_polling: 3,
       datasize: 257,
       results_dir: "/tmp",
       uptimes_schedule_name: "uptimes-dao-60-sec.json"
