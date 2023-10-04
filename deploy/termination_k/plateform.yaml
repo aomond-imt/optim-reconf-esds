@@ -17,13 +17,14 @@ nodes:
 
   arguments:
     all: {
-      stressConso: 0,
+      stressConso: 1.358,
       idleConso: 1.339,
       nb_msrmt: 5,
       commsConso: 0.16,
       bandwidth: 6250,
       freq_polling: 6,
-      datasize: 257
+      datasize: 257,
+      results_dir: "/tmp"
     }
 
 interfaces:
