@@ -23,7 +23,8 @@ nodes:
       commsConso: 0.16,
       bandwidth: 6250,
       freq_polling: 6,
-      datasize: 257
+      datasize: 257,
+      results_dir: "/tmp"
     }
 
 interfaces:

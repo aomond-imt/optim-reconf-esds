@@ -1,6 +1,5 @@
 import os
 from multiprocessing import shared_memory
-from typing import List
 
 from esds.node import Node
 
@@ -46,6 +45,7 @@ def execute(api: Node):
         comms_cons,
         idle_conso,
         stress_conso,
+        results_dir,
         tot_uptimes,
         tot_msg_sent,
         tot_msg_rcv
@@ -82,14 +82,9 @@ def execute(api: Node):
             s.buf[0] = 1
             break
 
-    node_cons.report_energy()
-    comms_cons.report_energy()
-    api.log(f"Tot nb uptimes: {tot_uptimes}")
-    api.log(f"Tot msg sent: {tot_msg_sent}")
-    api.log(f"Tot msg rcv: {tot_msg_rcv}")
+    simulation_functions.report_metrics(api, c, comms_cons, node_cons, results_dir, tot_msg_rcv, tot_msg_sent, tot_uptimes)
     s.close()
     s.unlink()
-    return
 
 
 def execute_action(actions_done, actions_duration, api, node_cons, idle_conso, remaining, stress_conso, coord_name):
