@@ -21,13 +21,15 @@ def coordination(api, remaining, bandwidth, c, datasize, end_uptime, freq_pollin
         api.send(interface_name, (api.node_id, coord_name), datasize, 1)
         tot_msg_sent += 1
         # TODO: why need *2
-        code, msrmt_id_res = api.receivet(interface_name, timeout=min(datasize * 2 / bandwidth, end_uptime - c()))
+        code, data = api.receivet(interface_name, timeout=min(datasize * 2 / bandwidth, end_uptime - c()))
         tot_msg_rcv += 1
-        if msrmt_id_res is not None:
-            api.log(f"Removing {msrmt_id_res}")
-            remaining.remove(msrmt_id_res)
-            if len(remaining) == 0:
-                api.log(f"{coord_name} clear")
+        if data is not None:
+            msrmt_id_res, _ = data
+            if msrmt_id_res is not None:
+                api.log(f"Removing {msrmt_id_res}")
+                remaining.remove(msrmt_id_res)
+                if len(remaining) == 0:
+                    api.log(f"{coord_name} clear")
 
         api.wait(min(freq_polling, end_uptime - c()))
     return tot_msg_rcv, tot_msg_sent
@@ -53,10 +55,10 @@ def execute(api: Node):
 
     remaining_install = [msrmt_id for msrmt_id in range(1, nb_msrmt + 1)]
     remaining_run = [msrmt_id for msrmt_id in range(1, nb_msrmt + 1)]
-    s = shared_memory.SharedMemory("shm_cps", create=True, size=32)
 
     def c():
         return api.read("clock")
+
     actions_duration = {
         "install": 10,
         "run": 10
@@ -79,12 +81,9 @@ def execute(api: Node):
         api.turn_off()
         node_cons.set_power(0)
         if len(remaining_install) == 0 and len(remaining_run) == 0:
-            s.buf[0] = 1
             break
 
-    simulation_functions.report_metrics(api, c, comms_cons, node_cons, results_dir, tot_msg_rcv, tot_msg_sent, tot_uptimes)
-    s.close()
-    s.unlink()
+    simulation_functions.report_metrics(api, c, comms_cons, node_cons, results_dir, "deploy-60s-direct-termination_k", tot_msg_rcv, tot_msg_sent, tot_uptimes)
 
 
 def execute_action(actions_done, actions_duration, api, node_cons, idle_conso, remaining, stress_conso, coord_name):

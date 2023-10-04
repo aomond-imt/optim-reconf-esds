@@ -63,7 +63,7 @@ def execute(api: Node):
                 sender_id, coord_name = data
                 if sender_id == aggregator_id and not aggregator_acks[coord_name]:
                     api.log("Sending ack to aggregator")
-                    api.send(interface_name, api.node_id, datasize, aggregator_id)
+                    api.send(interface_name, (api.node_id, coord_name), datasize, aggregator_id)
                     tot_msg_sent += 1
                     aggregator_acks[coord_name] = True
         if c() < end_uptime:
@@ -73,5 +73,5 @@ def execute(api: Node):
         if all(aggregator_acks.values()):
             s.buf[api.node_id] = 1
 
-    simulation_functions.report_metrics(api, c, comms_cons, node_cons, results_dir, tot_msg_rcv, tot_msg_sent, tot_uptimes)
+    simulation_functions.report_metrics(api, c, comms_cons, node_cons, results_dir, "deploy-60s-direct", tot_msg_rcv, tot_msg_sent, tot_uptimes)
     s.close()

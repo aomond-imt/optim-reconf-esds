@@ -24,7 +24,8 @@ nodes:
       bandwidth: 6250,
       freq_polling: 6,
       datasize: 257,
-      results_dir: "/tmp"
+      results_dir: "/tmp",
+      uptimes_schedule_name: "uptimes-dao-60-sec.json"
     }
 
 interfaces:
