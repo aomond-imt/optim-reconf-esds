@@ -45,6 +45,7 @@ def execute(api: Node):
         nb_msrmt,
         comms_cons,
         idle_conso,
+        stress_conso,
         tot_uptimes,
         tot_msg_sent,
         tot_msg_rcv
@@ -56,7 +57,14 @@ def execute(api: Node):
 
     def c():
         return api.read("clock")
-
+    actions_duration = {
+        "install": 10,
+        "run": 10
+    }
+    actions_done = {
+        "install": False,
+        "run": False
+    }
     api.turn_off()
     for uptime, d in uptimes_schedules:
         api.wait(uptime - c())
@@ -65,7 +73,9 @@ def execute(api: Node):
         node_cons.set_power(idle_conso)
         end_uptime = uptime + d
         tot_msg_rcv, tot_msg_sent = coordination(api, remaining_install, bandwidth, c, datasize, end_uptime, freq_polling, interface_name, "install", tot_msg_rcv, tot_msg_sent)
+        execute_action(actions_done, actions_duration, api, node_cons, idle_conso, remaining_install, stress_conso, "install")
         tot_msg_rcv, tot_msg_sent = coordination(api, remaining_run, bandwidth, c, datasize, end_uptime, freq_polling, interface_name, "run", tot_msg_rcv, tot_msg_sent)
+        execute_action(actions_done, actions_duration, api, node_cons, idle_conso, remaining_run, stress_conso, "run")
         api.turn_off()
         node_cons.set_power(0)
         if len(remaining_install) == 0 and len(remaining_run) == 0:
@@ -81,3 +91,11 @@ def execute(api: Node):
     s.unlink()
     return
 
+
+def execute_action(actions_done, actions_duration, api, node_cons, idle_conso, remaining, stress_conso, coord_name):
+    if len(remaining) == 0 and not actions_done[coord_name]:
+        api.log(f"Execute {coord_name}")
+        node_cons.set_power(stress_conso)
+        api.wait(actions_duration[coord_name])
+        actions_done[coord_name] = True
+        node_cons.set_power(idle_conso)

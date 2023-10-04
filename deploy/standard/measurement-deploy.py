@@ -24,11 +24,11 @@ def execute(api: Node):
         nb_msrmt,
         comms_cons,
         idle_conso,
+        stress_conso,
         tot_uptimes,
         tot_msg_sent,
         tot_msg_rcv
     ) = simulation_functions.initialisation(api)
-
 
     aggregator_acks = {
         "install": False,
@@ -39,6 +39,8 @@ def execute(api: Node):
     def c():
         return api.read("clock")
 
+    actions_done = False
+    actions_duration = 20  # install + run
     api.turn_off()
     for uptime, d in uptimes_schedules:
         api.wait(uptime - c())
@@ -46,6 +48,11 @@ def execute(api: Node):
             break
         api.turn_on()
         tot_uptimes += 1
+        if not actions_done:
+            api.log(f"Execute install and run")
+            node_cons.set_power(stress_conso)
+            api.wait(actions_duration)
+            actions_done = True
         node_cons.set_power(idle_conso)
         end_uptime = uptime + d
         while not all(aggregator_acks.values()) and c() < end_uptime:

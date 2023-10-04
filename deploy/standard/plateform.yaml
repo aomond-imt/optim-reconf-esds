@@ -17,7 +17,7 @@ nodes:
 
   arguments:
     all: {
-      stressConso: 0,
+      stressConso: 1.358,
       idleConso: 1.339,
       nb_msrmt: 5,
       commsConso: 0.16,
