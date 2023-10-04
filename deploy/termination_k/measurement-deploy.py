@@ -1,7 +1,15 @@
+import os
+
 from esds.node import Node
+
+current_dir_name = os.path.dirname(os.path.abspath(__file__))
+import sys
+sys.path.insert(1, f"{current_dir_name}/..")
+
 import simulation_functions
 
 duration = 60
+aggregator_id = 0
 
 
 def execute(api: Node):
@@ -19,8 +27,7 @@ def execute(api: Node):
         tot_msg_rcv
     ) = simulation_functions.initialisation(api)
 
-    nb_msrmt = 2
-    remaining = [msrmt_id for msrmt_id in range(1, nb_msrmt + 1)]
+    aggregator_ack = False
 
     def c():
         return api.read("clock")
@@ -32,23 +39,17 @@ def execute(api: Node):
         tot_uptimes += 1
         node_cons.set_power(idle_conso)
         end_uptime = uptime + d
-        while len(remaining) > 0 and c() < end_uptime:
-            for msrmt_id in remaining:
-                if c() + datasize*3/bandwidth >= end_uptime:
-                    break
-                api.send(interface_name, api.node_id, datasize, msrmt_id)
+        while not aggregator_ack and c() < end_uptime:
+            code, data = api.receivet(interface_name, timeout=end_uptime - c())
+            tot_msg_rcv += 1
+            if data == aggregator_id:
+                api.log("Sending ack to aggregator")
+                api.send(interface_name, api.node_id, datasize, aggregator_id)
                 tot_msg_sent += 1
-                # TODO: why need *2
-                code, msrmt_id_res = api.receivet(interface_name, timeout=min(datasize*2/bandwidth, end_uptime - c()))
-                tot_msg_rcv += 1
-                if msrmt_id_res is not None:
-                    api.log(f"Removing {msrmt_id_res}")
-                    remaining.remove(msrmt_id_res)
-
-            api.wait(min(freq_polling, end_uptime - c()))
+                aggregator_ack = True
         api.turn_off()
         node_cons.set_power(0)
-        if len(remaining) == 0:
+        if aggregator_ack:
             break
 
     node_cons.report_energy()

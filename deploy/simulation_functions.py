@@ -4,7 +4,7 @@ from esds.plugins.power_states import PowerStates, PowerStatesComms
 
 
 def initialisation(api):
-    with open("uptimes_schedules/uptimes-dao-60-sec.json") as f:
+    with open("../uptimes_schedules/uptimes-dao-60-sec.json") as f:
         uptimes_schedules = json.load(f)[api.node_id]
     interface_name = "eth0"
     datasize = api.args["datasize"]
