@@ -1,0 +1,30 @@
+general:
+  interferences: off
+
+nodes:
+  count: 31
+  implementations:
+    - 0 aggregator-deploy.py
+    - 1-@ measurement-deploy.py
+
+  arguments:
+    all: {
+      stressConso: 1.358,
+      idleConso: 1.339,
+      nb_msrmt: 30,
+      commsConso: 0.16,
+      bandwidth: 6250,
+      freq_polling: 3,
+      datasize: 257,
+      results_dir: "/tmp",
+      uptimes_schedule_name: "uptimes-dao-60-sec.json"
+    }
+
+interfaces:
+  eth0:
+    type: "wireless"
+    links:
+      - all 50kbps 0s all
+    txperfs:
+      - all 50kbps 0s  # Perf de chaque noeud sur cette interface
+    nodes: all
