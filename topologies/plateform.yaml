@@ -1,0 +1,27 @@
+general:
+  interferences: off
+
+nodes:
+  count: 5
+  implementations:
+    - 0 cnn.py
+    - 1-@ measurement.py
+
+  arguments:
+    all: {
+      stressConso: 1.358,
+      idleConso: 1.339,
+      commsConso: 0.16,
+      bandwidth: 6250,
+      results_dir: "/tmp",
+      uptimes_schedule_name: "test-60-sec.json"
+    }
+
+interfaces:
+  eth0:
+    type: "wireless"
+    links:
+      - all 50kbps 0s all
+    txperfs:
+      - all 50kbps 0s  # Perf de chaque noeud sur cette interface
+    nodes: all
