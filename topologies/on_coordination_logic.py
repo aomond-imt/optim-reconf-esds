@@ -1,20 +1,31 @@
 import json
+import time
 from multiprocessing import shared_memory
+
 
 from esds.node import Node
 
 
 def execute_coordination_tasks(api: Node, tasks_list):
-    with open(f"uptimes_schedules/{api.args['uptimes_schedule_name']}") as f:
-        uptimes_schedules = json.load(f)[api.node_id]  # Node uptime schedule
-    retrieved_data = []  # All data retrieved from neighbors
-    current_task = tasks_list.pop(0)  # Current task trying to be run
-
+    """
+    Weaknesses:
+    - Do not consume messages when executing tasks. Message can accumulate leading
+      to mass responses after task is complete
+    :param api:
+    :param tasks_list:
+    :return:
+    """
     # Setup termination condition
     if api.node_id == 0:
         s = shared_memory.SharedMemory("shm_cps", create=True, size=5)
     else:
+        time.sleep(0.5)
         s = shared_memory.SharedMemory("shm_cps")
+
+    with open(f"uptimes_schedules/{api.args['uptimes_schedule_name']}") as f:
+        uptimes_schedules = json.load(f)[api.node_id]  # Node uptime schedule
+    retrieved_data = []  # All data retrieved from neighbors
+    current_task = tasks_list.pop(0)  # Current task trying to be run
 
     def c():
         return api.read("clock")
@@ -27,13 +38,10 @@ def execute_coordination_tasks(api: Node, tasks_list):
 
     # Duty-cycle simulation
     for uptime, duration in uptimes_schedules:
-        api.log("sleeping")
         api.wait(uptime - c())
-        api.log("done")
         # Loop until all tasks are done
         while current_task is not None and not is_time_up(uptime + duration):
-            name, time, dependencies = current_task
-            api.log("starting task")
+            name, time_task, dependencies = current_task
             # Resolve dependencies
             while not all(dep in retrieved_data for dep in dependencies) and not is_time_up(uptime + duration):
                 # Ask only for not retrieved dependencies
@@ -57,7 +65,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
             if not is_time_up(uptime + duration) and all(dep in retrieved_data for dep in dependencies):
                 # When dependencies are resolved, execute reconf task
                 api.log("doing task")
-                api.wait(time)
+                api.wait(time_task)
                 # Append the task done to the retrieved_data list
                 retrieved_data.append(name)
                 if len(tasks_list) > 0:
