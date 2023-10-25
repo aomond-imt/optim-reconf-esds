@@ -9,12 +9,12 @@ nodes:
 
   arguments:
     all: {
-      stressConso: 1.358,
-      idleConso: 1.339,
-      commsConso: 0.16,
+      stress_conso: 1.358,
+      idle_conso: 1.339,
+      comms_conso: 0.16,
       bandwidth: 6250,
       results_dir: "/tmp",
-      uptimes_schedule_name: "test-60-sec.json"
+      uptimes_schedule_name: "uptimes-dao-60-sec.json"
     }
 
 interfaces:
