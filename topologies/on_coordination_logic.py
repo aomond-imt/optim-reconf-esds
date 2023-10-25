@@ -1,4 +1,5 @@
 import json
+from multiprocessing import shared_memory
 
 from esds.node import Node
 
@@ -8,6 +9,12 @@ def execute_coordination_tasks(api: Node, tasks_list):
         uptimes_schedules = json.load(f)[api.node_id]  # Node uptime schedule
     retrieved_data = []  # All data retrieved from neighbors
     current_task = tasks_list.pop(0)  # Current task trying to be run
+
+    # Setup termination condition
+    if api.node_id == 0:
+        s = shared_memory.SharedMemory("shm_cps", create=True, size=5)
+    else:
+        s = shared_memory.SharedMemory("shm_cps")
 
     def c():
         return api.read("clock")
@@ -58,10 +65,10 @@ def execute_coordination_tasks(api: Node, tasks_list):
                 else:
                     api.log("all tasks done cya nerds")
                     current_task = None
+                    s.buf[api.node_id] = 1
 
         # When all ONs tasks are done, stay in receive mode until the end of reconf
-        while not is_time_up(uptime + duration):
-            # api.log("times not up")
+        while not is_time_up(uptime + duration) and any(buf_flag == 0 for buf_flag in s.buf):
             code, data = api.receivet("eth0", timeout=min(1, remaining_time(uptime + duration)))
             api.log(f"received {data}")
             if data is not None:
@@ -71,3 +78,8 @@ def execute_coordination_tasks(api: Node, tasks_list):
                     for content in content_data:
                         if content in retrieved_data:
                             api.sendt("eth0", ("rep", content), 257, 0, timeout=remaining_time(uptime + duration))
+
+    api.log("terminating")
+    s.close()
+    if api.node_id == 0:
+        s.unlink()
