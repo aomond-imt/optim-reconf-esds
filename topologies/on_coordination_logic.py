@@ -103,7 +103,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
         # When all ONs tasks are done, stay in receive mode until the end of reconf
         while not is_time_up(uptime + duration) and any(buf_flag == 0 for buf_flag in s.buf):
             code, data = api.receivet("eth0", timeout=min(1, remaining_time(uptime + duration)))
-            api.log(f"received {data}")
+            # api.log(f"received {data}")
             if data is not None:
                 type_data, content_data = data
                 tot_msg_rcv += 1
@@ -113,6 +113,9 @@ def execute_coordination_tasks(api: Node, tasks_list):
                         if content in retrieved_data:
                             api.sendt("eth0", ("rep", content), 257, 0, timeout=remaining_time(uptime + duration))
                             tot_msg_sent += 1
+
+        if all(buf_flag == 1 for buf_flag in s.buf):
+            break
 
     # Report metrics
     node_cons.set_power(0)
