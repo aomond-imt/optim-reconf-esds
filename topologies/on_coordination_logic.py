@@ -32,26 +32,6 @@ def is_isolated_uptime(node_num, hour_num, uptime_schedules):
     return True
 
 
-if __name__ == "__main__":
-    with open(f"uptimes_schedules/uptimes-dao-60-sec.json") as f:
-        all_uptimes_schedules = json.load(f)  # Get all uptimes schedules for simulation optimization
-
-    for hour in range(3):
-        # print(hour)
-        for node_num in range(5):
-            # print(f"{node_num} {is_isolated_uptime(node_num, hour, all_uptimes_schedules)}")
-            is_isolated_uptime(node_num, hour, all_uptimes_schedules)
-
-# for node_num in range(5):
-#     for hour in range(len(all_uptimes_schedules[0])):
-#         for n_node_num in range(5):
-#             if node_num!=
-#     for i, nodes_schedules_i in enumerate(all_uptimes_schedules):
-#         for j, nodes_schedules_j in enumerate(all_uptimes_schedules):
-#             if i != j:
-#                 for u_i, u_j in zip(nodes_schedules_i, nodes_schedules_j):
-
-
 def execute_coordination_tasks(api: Node, tasks_list):
     """
     Weaknesses:
@@ -78,11 +58,12 @@ def execute_coordination_tasks(api: Node, tasks_list):
     comms_cons.set_power(interface_name, 0, comms_conso, comms_conso)
 
     # Setup metrics
-    tot_uptimes, tot_msg_sent, tot_msg_rcv = 0, 0, 0
+    tot_uptimes, tot_msg_sent, tot_msg_rcv, tot_uptimes_duration, tot_reconf_duration, tot_sleeping_duration = 0, 0, 0, 0, 0, 0
     results_dir = api.args["results_dir"]
 
     # Get node's uptime schedule and initialise variable
-    with open(f"uptimes_schedules/{api.args['uptimes_schedule_name']}") as f:
+    uptimes_schedule_name = api.args['uptimes_schedule_name']
+    with open(f"uptimes_schedules/{uptimes_schedule_name}") as f:
         all_uptimes_schedules = json.load(f)  # Get all uptimes schedules for simulation optimization
     uptimes_schedules = all_uptimes_schedules[api.node_id]  # Node uptime schedule
     retrieved_data = []  # All data retrieved from neighbors
@@ -93,7 +74,6 @@ def execute_coordination_tasks(api: Node, tasks_list):
         return api.read("clock")
 
     def is_time_up(deadline):
-
         return c() + 0.0001 >= deadline  # Add epsilon to compensate float operations inaccuracy
 
     def remaining_time(deadline):
@@ -103,7 +83,9 @@ def execute_coordination_tasks(api: Node, tasks_list):
     for uptime, duration in uptimes_schedules:
         node_cons.set_power(0)
         api.turn_off()
-        api.wait(uptime - c())
+        sleeping_duration = uptime - c()
+        api.wait(sleeping_duration)
+        tot_sleeping_duration += sleeping_duration
         api.turn_on()
         node_cons.set_power(idle_conso)
 
@@ -138,6 +120,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
                 api.log("doing task")
                 node_cons.set_power(stress_conso)
                 api.wait(time_task)
+                tot_reconf_duration += time_task
                 node_cons.set_power(idle_conso)
                 # Append the task done to the retrieved_data list
                 retrieved_data.append(name)
@@ -174,6 +157,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
             api.wait(remaining_time(uptime + duration))
 
         tot_uptimes += 1
+        tot_uptimes_duration += c() - uptime
 
     # Report metrics
     node_cons.set_power(0)
@@ -183,7 +167,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
     api.log(f"Tot msg sent: {tot_msg_sent}")
     api.log(f"Tot msg rcv: {tot_msg_rcv}")
     api.log(f"Tot aggregated send: {aggregated_send}")
-    results_dir_exec = f"{results_dir}"
+    results_dir_exec = f"{results_dir}/{uptimes_schedule_name}"
     os.makedirs(results_dir_exec, exist_ok=True)
     with open(f"{results_dir_exec}/{api.node_id}.yaml", "w") as f:
         yaml.safe_dump({
@@ -193,6 +177,10 @@ def execute_coordination_tasks(api: Node, tasks_list):
             "tot_uptimes": tot_uptimes,
             "tot_msg_sent": tot_msg_sent,
             "tot_msg_rcv": tot_msg_rcv,
+            "tot_aggregated_send": aggregated_send,
+            "tot_uptimes_duration": tot_uptimes_duration,
+            "tot_reconf_duration": tot_reconf_duration,
+            "tot_sleeping_duration": tot_sleeping_duration,
         }, f)
 
     api.log("terminating")
