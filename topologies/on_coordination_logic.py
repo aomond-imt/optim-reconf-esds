@@ -8,7 +8,7 @@ from esds.node import Node
 from esds.plugins.power_states import PowerStates, PowerStatesComms
 
 
-NB_NODES = 31
+NB_NODES = 5
 
 
 def is_isolated_uptime(node_num, hour_num, uptime_schedules):
@@ -50,6 +50,7 @@ if __name__ == "__main__":
 #         for j, nodes_schedules_j in enumerate(all_uptimes_schedules):
 #             if i != j:
 #                 for u_i, u_j in zip(nodes_schedules_i, nodes_schedules_j):
+
 
 def execute_coordination_tasks(api: Node, tasks_list):
     """
@@ -149,7 +150,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
 
             if is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules):
                 api.wait(remaining_time(uptime + duration))
-                aggregated_send += duration  # TODO: inaccurate value, to fix
+                aggregated_send += duration  # TODO: inaccurate value, to fix with the formula
 
         if not is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules):
             # When all ONs tasks are done, stay in receive mode until the end of reconf
