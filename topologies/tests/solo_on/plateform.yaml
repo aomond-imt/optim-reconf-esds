@@ -2,10 +2,9 @@ general:
   interferences: off
 
 nodes:
-  count: 3
+  count: 1
   implementations:
-    - 0 cnn.py
-    - 1-@ measurement.py
+    - 0 on_0.py
 
   arguments:
     all: {
@@ -14,19 +13,15 @@ nodes:
       comms_conso: 0.16,
       bandwidth: 6250,
       results_dir: "/tmp",
-      nodes_count: 3,
-      uptimes_schedule_name: "uptimes_schedules/tests/chain-0.json"
+      nodes_count: 1,
+      uptimes_schedule_name: "tests/solo_on/uptime_schedules.json"
     }
 
 interfaces:
   eth0:
     type: "wireless"
     links:
-      - 0 50kbps 0s 1
-      - 1 50kbps 0s 0
-      - 1 50kbps 0s 2
-      - 2 50kbps 0s 1
-#      - all 50kbps 0s all
+      - all 50kbps 0s all
     txperfs:
       - all 50kbps 0s  # Perf de chaque noeud sur cette interface
     nodes: all

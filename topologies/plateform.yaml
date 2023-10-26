@@ -14,7 +14,8 @@ nodes:
       comms_conso: 0.16,
       bandwidth: 6250,
       results_dir: "/tmp",
-      uptimes_schedule_name: "uptimes-dao-60-sec.json"
+      nodes_count: 5,
+      uptimes_schedule_name: "uptimes_schedules/uptimes-dao-60-sec.json"
     }
 
 interfaces:
