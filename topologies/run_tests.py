@@ -10,6 +10,7 @@ FREQ_POLLING = 1
 for test_dir in os.listdir("tests"):
     print(test_dir)
     current_test_dir = f"tests/{test_dir}"
+    os.makedirs(f"/tmp/{current_test_dir}", exist_ok=True)
     with open(f"/tmp/{current_test_dir}/debug.txt", "w") as f:
         out = subprocess.run(["esds", "run", f"{current_test_dir}/plateform.yaml"], stdout=f, encoding="utf-8", env=env_with_pythonpath)
 

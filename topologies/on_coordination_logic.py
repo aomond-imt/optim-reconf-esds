@@ -121,7 +121,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
                                     api.log(f"Sending {content}")
                                     api.sendt("eth0", ("rep", content), 257, 0, timeout=remaining_time(uptime + duration))
                                     tot_msg_sent += 1
-                        code, data = api.receivet("eth0", timeout=min(0.1, remaining_time(uptime + duration)))
+                        code, data = api.receivet("eth0", timeout=min(0.05, remaining_time(uptime + duration)))
                     api.wait(FREQ_POLLING)
 
             # When dependencies are resolved, execute reconf task
@@ -141,8 +141,8 @@ def execute_coordination_tasks(api: Node, tasks_list):
                     current_task = None
                     s.buf[api.node_id] = 1
 
-            # If isolated uptime, simulate the sending of the node during the remaining uptime
-            if is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count):
+            # If isolated uptime, simulate the sending of the node during the remaining uptime (if dependencies need to be solved)
+            if is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count) and not all(dep in retrieved_data for dep in dependencies):
                 remaining_t = remaining_time(uptime + duration)
                 api.wait(remaining_t)
                 th_aggregated_send = remaining_t/((257/6250) + 0.05 + FREQ_POLLING)
