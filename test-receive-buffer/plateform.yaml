@@ -1,0 +1,17 @@
+general:
+  interferences: off
+
+nodes:
+  count: 2
+  implementations:
+    - 0 provide.py
+    - 1 use.py
+
+interfaces:
+  eth0:
+    type: "wireless"
+    links:
+      - all 50kbps 0s all
+    txperfs:
+      - all 50kbps 0s  # Perf de chaque noeud sur cette interface
+    nodes: all
