@@ -155,7 +155,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
                 api.log(f"Isolated uptime, simulating {th_aggregated_send} sends")
 
         # When all ONs tasks are done, stay in receive mode until the end of reconf
-        if not is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count):
+        if current_task is None and not is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count):
             api.log("Entering receive mode")
             while not is_time_up(uptime + duration) and any(buf_flag == 0 for buf_flag in s.buf):
                 code, data = api.receivet("eth0", timeout=min(1, remaining_time(uptime + duration)))

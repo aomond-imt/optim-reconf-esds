@@ -22,16 +22,32 @@ for test_dir in os.listdir("tests"):
             result = yaml.safe_load(f)
 
         print(f"Assertions node {node_num}")
+
         p = True
-        for key in ["finished_reconf", "tot_aggregated_send", "tot_msg_sent", "tot_reconf_duration"]:
+        for key in ["finished_reconf", "tot_aggregated_send", "tot_reconf_duration"]:
             if result[key] != expected_node_results[key]:
                 print(f"Error {key}: expected {expected_node_results[key]} got {result[key]}")
                 p = False
+
         for key in ["time", "tot_uptimes_duration"]:
             delta = abs(result[key] - expected_node_results[key])
             if delta > FREQ_POLLING * 2:
-                print(f"Error {key}: expected a delta of minus or equal {FREQ_POLLING*2}, got {delta}")
+                print(f"Error {key}: expected a delta of minus or equal {FREQ_POLLING*2}, got {delta} (expected {expected_node_results[key]} got {result[key]}")
                 p = False
+
+        for key in ["tot_msg_sent"]:
+            # Node 0 is supposed to send few messages compared to other nodes thus easier to accurately know sent msgs
+            if node_num == 0:
+                if result[key] != expected_node_results[key]:
+                    print(f"Error {key}: expected {expected_node_results[key]} got {result[key]}")
+                    p = False
+            else:
+                delta = abs(result[key] - expected_node_results[key])
+                if delta > FREQ_POLLING * 2:
+                    print(
+                        f"Error {key}: expected a delta of minus or equal {FREQ_POLLING * 2}, got {delta} (expected {expected_node_results[key]} got {result[key]}")
+                    p = False
+
         if p:
             print("Passed")
 
