@@ -15,14 +15,17 @@ nodes:
       bandwidth: 6250,
       results_dir: "/tmp",
       nodes_count: 3,
-      uptimes_schedule_name: "tests/overlaps_sending/uptime_schedules.json"
+      uptimes_schedule_name: "tests/chained_one_provide/uptime_schedules.json"
     }
 
 interfaces:
   eth0:
     type: "wireless"
     links:
-      - all 50kbps 0s all
+      - 0 50kbps 0s 1
+      - 1 50kbps 0s 0
+      - 1 50kbps 0s 2
+      - 2 50kbps 0s 1
     txperfs:
       - all 50kbps 0s  # Perf de chaque noeud sur cette interface
     nodes: all

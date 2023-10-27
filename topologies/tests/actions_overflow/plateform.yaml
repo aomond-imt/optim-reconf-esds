@@ -15,7 +15,7 @@ nodes:
       bandwidth: 6250,
       results_dir: "/tmp",
       nodes_count: 2,
-      uptimes_schedule_name: "tests/provide_use_1/uptime_schedules.json"
+      uptimes_schedule_name: "tests/actions_overflow/uptime_schedules.json"
     }
 
 interfaces:
