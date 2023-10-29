@@ -3,6 +3,7 @@ import math
 import os
 import time
 from multiprocessing import shared_memory
+from pathlib import Path
 
 import yaml
 from esds.node import Node
@@ -44,11 +45,12 @@ def execute_coordination_tasks(api: Node, tasks_list):
     """
     # Setup termination condition
     nodes_count = api.args["nodes_count"]
+    expe_name = Path(api.args["results_dir"]).stem
     if api.node_id == 0:
-        s = shared_memory.SharedMemory("shm_cps", create=True, size=nodes_count)
+        s = shared_memory.SharedMemory(f"shm_cps_{expe_name}", create=True, size=nodes_count)
     else:
         time.sleep(0.5)
-        s = shared_memory.SharedMemory("shm_cps")
+        s = shared_memory.SharedMemory(f"shm_cps_{expe_name}")
 
     # Setup energy calibration
     interface_name = "eth0"
