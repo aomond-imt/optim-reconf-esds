@@ -1,0 +1,31 @@
+general:
+  interferences: off
+
+nodes:
+  count: 3
+  implementations:
+    - 0 provide.py
+    - 1-@ use.py
+
+  arguments:
+    all: {
+      stress_conso: 1.358,
+      idle_conso: 1.339,
+      comms_conso: 0.16,
+      bandwidth: 6250,
+      results_dir: "/tmp",
+      nodes_count: 3,
+      uptimes_schedule_name: "tests/chained_three_provides/uptime_schedules.json"
+    }
+
+interfaces:
+  eth0:
+    type: "wireless"
+    links:
+      - 0 50kbps 0s 1
+      - 1 50kbps 0s 0
+      - 1 50kbps 0s 2
+      - 2 50kbps 0s 1
+    txperfs:
+      - all 50kbps 0s  # Perf de chaque noeud sur cette interface
+    nodes: all
