@@ -1,0 +1,117 @@
+general:
+  interferences: off
+
+nodes:
+  count: 31
+  implementations:
+    - 0 cnn.py
+    - 1-@ measurement.py
+
+  arguments:
+    all: {
+      stress_conso: 1.358,
+      idle_conso: 1.339,
+      comms_conso: 0.16,
+      bandwidth: 6250,
+      results_dir: "/tmp/deploy-60-30-LoRa-direct",
+      nodes_count: 31,
+      uptimes_schedule_name: "uptimes_schedules/uptimes-dao-60-sec.json"
+    }
+
+interfaces:
+  eth0:
+    type: "wireless"
+    links:
+      - 0 50kbps 0s 1
+      - 1 50kbps 0s 0
+
+      - 1 50kbps 0s 2
+      - 2 50kbps 0s 1
+
+      - 2 50kbps 0s 3
+      - 3 50kbps 0s 2
+
+      - 3 50kbps 0s 4
+      - 4 50kbps 0s 3
+
+      - 4 50kbps 0s 5
+      - 5 50kbps 0s 4
+
+      - 5 50kbps 0s 6
+      - 6 50kbps 0s 5
+
+      - 6 50kbps 0s 7
+      - 7 50kbps 0s 6
+
+      - 7 50kbps 0s 8
+      - 8 50kbps 0s 7
+
+      - 8 50kbps 0s 9
+      - 9 50kbps 0s 8
+
+      - 9 50kbps 0s 10
+      - 10 50kbps 0s 9
+
+      - 10 50kbps 0s 11
+      - 11 50kbps 0s 10
+
+      - 11 50kbps 0s 12
+      - 12 50kbps 0s 11
+
+      - 12 50kbps 0s 13
+      - 13 50kbps 0s 12
+
+      - 13 50kbps 0s 14
+      - 14 50kbps 0s 13
+
+      - 14 50kbps 0s 15
+      - 15 50kbps 0s 14
+
+      - 15 50kbps 0s 16
+      - 16 50kbps 0s 15
+
+      - 16 50kbps 0s 17
+      - 17 50kbps 0s 16
+
+      - 17 50kbps 0s 18
+      - 18 50kbps 0s 17
+
+      - 18 50kbps 0s 19
+      - 19 50kbps 0s 18
+
+      - 19 50kbps 0s 20
+      - 20 50kbps 0s 19
+
+      - 20 50kbps 0s 21
+      - 21 50kbps 0s 20
+
+      - 21 50kbps 0s 22
+      - 22 50kbps 0s 21
+
+      - 22 50kbps 0s 23
+      - 23 50kbps 0s 22
+
+      - 23 50kbps 0s 24
+      - 24 50kbps 0s 23
+
+      - 24 50kbps 0s 25
+      - 25 50kbps 0s 24
+
+      - 25 50kbps 0s 26
+      - 26 50kbps 0s 25
+
+      - 26 50kbps 0s 27
+      - 27 50kbps 0s 26
+
+      - 27 50kbps 0s 28
+      - 28 50kbps 0s 27
+
+      - 28 50kbps 0s 29
+      - 29 50kbps 0s 28
+
+      - 29 50kbps 0s 30
+      - 30 50kbps 0s 29
+
+    txperfs:
+      - all 50kbps 0s  # Perf de chaque noeud sur cette interface
+    nodes: all

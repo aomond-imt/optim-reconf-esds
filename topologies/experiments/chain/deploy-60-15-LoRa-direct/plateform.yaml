@@ -1,0 +1,72 @@
+general:
+  interferences: off
+
+nodes:
+  count: 16
+  implementations:
+    - 0 cnn.py
+    - 1-@ measurement.py
+
+  arguments:
+    all: {
+      stress_conso: 1.358,
+      idle_conso: 1.339,
+      comms_conso: 0.16,
+      bandwidth: 6250,
+      results_dir: "/tmp/deploy-60-15-LoRa-direct",
+      nodes_count: 16,
+      uptimes_schedule_name: "uptimes_schedules/uptimes-dao-60-sec.json"
+    }
+
+interfaces:
+  eth0:
+    type: "wireless"
+    links:
+      - 0 50kbps 0s 1
+      - 1 50kbps 0s 0
+
+      - 1 50kbps 0s 2
+      - 2 50kbps 0s 1
+
+      - 2 50kbps 0s 3
+      - 3 50kbps 0s 2
+
+      - 3 50kbps 0s 4
+      - 4 50kbps 0s 3
+
+      - 4 50kbps 0s 5
+      - 5 50kbps 0s 4
+
+      - 5 50kbps 0s 6
+      - 6 50kbps 0s 5
+
+      - 6 50kbps 0s 7
+      - 7 50kbps 0s 6
+
+      - 7 50kbps 0s 8
+      - 8 50kbps 0s 7
+
+      - 8 50kbps 0s 9
+      - 9 50kbps 0s 8
+
+      - 9 50kbps 0s 10
+      - 10 50kbps 0s 9
+
+      - 10 50kbps 0s 11
+      - 11 50kbps 0s 10
+
+      - 11 50kbps 0s 12
+      - 12 50kbps 0s 11
+
+      - 12 50kbps 0s 13
+      - 13 50kbps 0s 12
+
+      - 13 50kbps 0s 14
+      - 14 50kbps 0s 13
+
+      - 14 50kbps 0s 15
+      - 15 50kbps 0s 14
+
+    txperfs:
+      - all 50kbps 0s  # Perf de chaque noeud sur cette interface
+    nodes: all

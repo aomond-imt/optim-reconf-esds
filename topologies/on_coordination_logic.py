@@ -199,14 +199,13 @@ def execute_coordination_tasks(api: Node, tasks_list):
     api.log(f"Tot msg sent: {tot_msg_sent}")
     api.log(f"Tot msg rcv: {tot_msg_rcv}")
     api.log(f"Tot aggregated send: {aggregated_send}")
-    results_dir_exec = f"{results_dir}/{uptimes_schedule_name}"
-    os.makedirs(results_dir_exec, exist_ok=True)
-    with open(f"{results_dir_exec}/{api.node_id}.yaml", "w") as f:
+    os.makedirs(results_dir, exist_ok=True)
+    with open(f"{results_dir}/{api.node_id}.yaml", "w") as f:
         yaml.safe_dump({
             "finished_reconf": current_task is None,
             "time": c(),
             "node_cons": node_cons.energy,
-            "comms_cons": float(comms_cons.get_energy() + aggregated_send * comms_conso),
+            "comms_cons": float(comms_cons.get_energy() + aggregated_send * (257/6250) * comms_conso),
             "tot_uptimes": tot_uptimes,
             "tot_msg_sent": tot_msg_sent,
             "tot_msg_rcv": tot_msg_rcv,
