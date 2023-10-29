@@ -93,22 +93,24 @@ def execute_coordination_tasks(api: Node, tasks_list):
         # Uptime period
         api.turn_on()
         node_cons.set_power(idle_conso)
+        uptime_end = uptime + duration
 
         # Loop until all tasks are done
-        while current_task is not None and not is_time_up(uptime + duration):
+        while current_task is not None and not is_time_up(uptime_end):
             name, time_task, dependencies = current_task
 
             # Resolve dependencies and catch incoming requests
             if not is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count):
-                while not all(dep in retrieved_data for dep in dependencies) and not is_time_up(uptime + duration):
+                while not all(dep in retrieved_data for dep in dependencies) and not is_time_up(uptime_end):
                     # Ask only for not retrieved dependencies
                     req_dependencies = [dep for dep in dependencies if dep not in retrieved_data]
                     # Request dependencies to all neighbors
-                    api.sendt("eth0", ("req", req_dependencies), 257, 0, timeout=remaining_time(uptime + duration))
-                    tot_msg_sent += 1
+                    api.sendt("eth0", ("req", req_dependencies), 257, 0, timeout=remaining_time(uptime_end))
+                    if remaining_time(uptime_end) >= 257 / 6250:  # TODO: theoretical verification, use sendt code to check (when its working)
+                        tot_msg_sent += 1
                     # Listen to response and to other neighbors' requests
-                    code, data = api.receivet("eth0", timeout=min(0.05, remaining_time(uptime + duration)))
-                    while data is not None and not is_time_up(uptime + duration):
+                    code, data = api.receivet("eth0", timeout=min(0.05, remaining_time(uptime_end)))
+                    while data is not None and not is_time_up(uptime_end):
                         type_data, content_data = data
                         tot_msg_rcv += 1
                         if type_data == "rep" and content_data in dependencies:
@@ -119,13 +121,14 @@ def execute_coordination_tasks(api: Node, tasks_list):
                             for content in content_data:
                                 if content in retrieved_data:
                                     api.log(f"Sending {content}")
-                                    api.sendt("eth0", ("rep", content), 257, 0, timeout=remaining_time(uptime + duration))
-                                    tot_msg_sent += 1
-                        code, data = api.receivet("eth0", timeout=min(0.05, remaining_time(uptime + duration)))
-                    api.wait(FREQ_POLLING)
+                                    api.sendt("eth0", ("rep", content), 257, 0, timeout=remaining_time(uptime_end))
+                                    if remaining_time(uptime_end) >= 257/6250:  # TODO: theoretical verification, use sendt code to check (when its working)
+                                        tot_msg_sent += 1
+                        code, data = api.receivet("eth0", timeout=min(0.05, remaining_time(uptime_end)))
+                    api.wait(min(FREQ_POLLING, remaining_time(uptime_end)))
 
             # When dependencies are resolved, execute reconf task
-            if not is_time_up(uptime + duration) and all(dep in retrieved_data for dep in dependencies):
+            if not is_time_up(uptime_end) and all(dep in retrieved_data for dep in dependencies):
                 api.log(f"Executing task {name}")
                 node_cons.set_power(stress_conso)
                 api.wait(time_task)
@@ -143,7 +146,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
 
             # If isolated uptime, simulate the sending of the node during the remaining uptime (if dependencies need to be solved)
             if is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count) and not all(dep in retrieved_data for dep in dependencies):
-                remaining_t = remaining_time(uptime + duration)
+                remaining_t = remaining_time(uptime_end)
                 api.wait(remaining_t)
                 th_aggregated_send = remaining_t/((257/6250) + 0.05 + FREQ_POLLING)
                 aggregated_send += int(th_aggregated_send)
@@ -157,8 +160,8 @@ def execute_coordination_tasks(api: Node, tasks_list):
         # When all ONs tasks are done, stay in receive mode until the end of reconf
         if current_task is None and not is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count):
             api.log("Entering receive mode")
-            while not is_time_up(uptime + duration) and any(buf_flag == 0 for buf_flag in s.buf):
-                code, data = api.receivet("eth0", timeout=min(1, remaining_time(uptime + duration)))
+            while not is_time_up(uptime_end) and any(buf_flag == 0 for buf_flag in s.buf):
+                code, data = api.receivet("eth0", timeout=min(1, remaining_time(uptime_end)))
                 if data is not None:
                     type_data, content_data = data
                     tot_msg_rcv += 1
@@ -166,8 +169,9 @@ def execute_coordination_tasks(api: Node, tasks_list):
                         # Send all available requested dependencies
                         for content in content_data:
                             if content in retrieved_data:
-                                api.sendt("eth0", ("rep", content), 257, 0, timeout=remaining_time(uptime + duration))
-                                tot_msg_sent += 1
+                                api.sendt("eth0", ("rep", content), 257, 0, timeout=remaining_time(uptime_end))
+                                if remaining_time(uptime_end) >= 257 / 6250:  # TODO: theoretical verification, use sendt code to check (when its working)
+                                    tot_msg_sent += 1
 
         if all(buf_flag == 1 for buf_flag in s.buf):
             api.log("All nodes finished, terminating")
@@ -176,8 +180,8 @@ def execute_coordination_tasks(api: Node, tasks_list):
             break
 
         if is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count):
-            remaining_t = remaining_time(uptime + duration)
-            api.log(f"Isolated uptime, simulating {remaining_t} receive mode time")
+            remaining_t = remaining_time(uptime_end)
+            api.log(f"Isolated uptime, simulating {remaining_t} receive mode time (no energy cost)")
             api.wait(remaining_t)
 
         tot_uptimes += 1
