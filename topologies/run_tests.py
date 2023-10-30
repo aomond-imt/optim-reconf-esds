@@ -12,8 +12,8 @@ for test_dir in os.listdir("tests"):
     current_test_dir = f"tests/{test_dir}"
 
     # Launch and log experiment
-    os.makedirs(f"/tmp/{current_test_dir}", exist_ok=True)
-    with open(f"/tmp/{current_test_dir}/debug.txt", "w") as f:
+    os.makedirs(f"/tmp/{test_dir}", exist_ok=True)
+    with open(f"/tmp/{test_dir}/debug.txt", "w") as f:
         out = subprocess.run(["esds", "run", f"{current_test_dir}/plateform.yaml"], stdout=f, encoding="utf-8", env=env_with_pythonpath)
 
     # Load experiment expected metric results
@@ -23,7 +23,7 @@ for test_dir in os.listdir("tests"):
     # Check result for each node
     for node_num, expected_node_results in expected_result.items():
         # Load node results
-        with open(f"/tmp/{current_test_dir}/uptime_schedules.json/{node_num}.yaml") as f:
+        with open(f"/tmp/{test_dir}/{node_num}.yaml") as f:
             result = yaml.safe_load(f)
 
         # Check exact results

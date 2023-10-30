@@ -12,7 +12,7 @@ nodes:
       idle_conso: 1.339,
       comms_conso: 0.16,
       bandwidth: 6250,
-      results_dir: "/tmp",
+      results_dir: "/tmp/solo_on",
       nodes_count: 1,
       uptimes_schedule_name: "tests/solo_on/uptime_schedules.json"
     }

@@ -52,7 +52,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
         time.sleep(0.5)
         s = shared_memory.SharedMemory(f"shm_cps_{expe_name}")
 
-    # Setup energy calibration
+    # Energy calibration
     interface_name = "eth0"
     idle_conso = api.args["idle_conso"]
     stress_conso = api.args["stress_conso"]
@@ -61,18 +61,18 @@ def execute_coordination_tasks(api: Node, tasks_list):
     comms_cons = PowerStatesComms(api)
     comms_cons.set_power(interface_name, 0, comms_conso, comms_conso)
 
-    # Setup metrics
+    # Metrics
     tot_uptimes, tot_msg_sent, tot_msg_rcv, tot_uptimes_duration, tot_reconf_duration, tot_sleeping_duration = 0, 0, 0, 0, 0, 0
-    results_dir = api.args["results_dir"]
+    aggregated_send = 0  # Count the number of send computed but not simulated
 
-    # Get node's uptime schedule and initialise variable
+    # Uptime schedule and variable initialisation
     uptimes_schedule_name = api.args['uptimes_schedule_name']
     with open(uptimes_schedule_name) as f:
         all_uptimes_schedules = json.load(f)  # Get all uptimes schedules for simulation optimization
-    uptimes_schedules = all_uptimes_schedules[api.node_id]  # Node uptime schedule
+    uptimes_schedule = all_uptimes_schedules[api.node_id]  # Node uptime schedule
     retrieved_data = []  # All data retrieved from neighbors
     current_task = tasks_list.pop(0)  # Current task trying to be run
-    aggregated_send = 0  # Count the number of send computed but not simulated
+    results_dir = api.args["results_dir"]
 
     def c():
         return api.read("clock")
@@ -84,7 +84,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
         return max(deadline - c(), 0)
 
     # Duty-cycle simulation
-    for uptime, duration in uptimes_schedules:
+    for uptime, duration in uptimes_schedule:
         # Sleeping period
         node_cons.set_power(0)
         api.turn_off()
@@ -159,7 +159,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
 
                 api.log(f"Isolated uptime, simulating {th_aggregated_send} sends")
 
-        # When all ONs tasks are done, stay in receive mode until the end of reconf
+        # Receive and respond to requests until the end of reconf
         if current_task is None and not is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count):
             api.log("Entering receive mode")
             while not is_time_up(uptime_end) and any(buf_flag == 0 for buf_flag in s.buf):
@@ -175,12 +175,14 @@ def execute_coordination_tasks(api: Node, tasks_list):
                                 if remaining_time(uptime_end) >= 257 / 6250:  # TODO: theoretical verification, use sendt code to check (when its working)
                                     tot_msg_sent += 1
 
+        # Check for termination condition
         if all(buf_flag == 1 for buf_flag in s.buf):
             api.log("All nodes finished, terminating")
             tot_uptimes += 1
             tot_uptimes_duration += c() - uptime
             break
 
+        # Receive period for simulation duration optimization
         if is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count):
             remaining_t = remaining_time(uptime_end)
             api.log(f"Isolated uptime, simulating {remaining_t} receive mode time (no energy cost)")

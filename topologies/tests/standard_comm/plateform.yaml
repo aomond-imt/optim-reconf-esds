@@ -13,7 +13,7 @@ nodes:
       idle_conso: 1.339,
       comms_conso: 0.16,
       bandwidth: 6250,
-      results_dir: "/tmp",
+      results_dir: "/tmp/standard_comm",
       nodes_count: 2,
       uptimes_schedule_name: "tests/standard_comm/uptime_schedules.json"
     }

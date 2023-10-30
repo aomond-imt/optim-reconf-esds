@@ -13,7 +13,7 @@ nodes:
       idle_conso: 1.339,
       comms_conso: 0.16,
       bandwidth: 6250,
-      results_dir: "/tmp",
+      results_dir: "/tmp/chained_one_provide",
       nodes_count: 3,
       uptimes_schedule_name: "tests/chained_one_provide/uptime_schedules.json"
     }
