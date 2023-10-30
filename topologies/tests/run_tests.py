@@ -40,8 +40,6 @@ topologies = {
 
 
 def run_simulation(test_name, tasks_list):
-    #B = np.array([[bwdth, bwdth, 0, 0, bwdth], [bwdth, bwdth, bwdth, 0, 0], [0, bwdth, bwdth, bwdth, 0], [0, 0, bwdth, bwdth, bwdth], [bwdth, 0, 0, bwdth, bwdth]])
-
     B, L = topologies[test_name]
     s = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
     nodes_count = len(tasks_list.keys())
@@ -57,41 +55,9 @@ def run_simulation(test_name, tasks_list):
     }
     sys.path.append("..")
     for node_num in range(nodes_count):
-        s.create_node("on_coordination_logic", interfaces=["eth0"], args=arguments)
+        s.create_node("on_pull", interfaces=["eth0"], args=arguments)
 
     s.run(interferences=False)
-
-
-def run_test(test_name):
-    with open(f"tests/{test_name}.yaml") as f:
-        test_args = yaml.safe_load(f)
-
-    tasks_list, expected_result = test_args["tasks_list"], test_args["expected_result"]
-
-    # Launch and log experiment
-    os.makedirs(f"/tmp/{test_name}", exist_ok=True)
-    with open(f"/tmp/{test_name}/debug.txt", "w") as f:
-        with redirect_stdout(f):
-            run_simulation(test_name, tasks_list)
-        # out = subprocess.run(["esds", "run", f"{current_test_dir}/plateform.yaml"], stdout=f, encoding="utf-8", env=env_with_pythonpath)
-
-    errors = verify_results(expected_result, test_name)
-    if len(errors) == 0:
-        print(f"{test_name}: ok")
-    else:
-        print(f"{test_name}: errors: \n" + "\n".join(errors))
-
-
-def main():
-    # for test in ['chained_one_provide', 'solo_on', 'overlaps_sending', 'actions_overflow', 'chained_three_provides', 'standard_comm']:
-    all_p = []
-    for test_name in topologies.keys():
-        p = Process(target=run_test, args=(test_name,))
-        p.start()
-        all_p.append(p)
-
-    for k in all_p:
-        k.join()
 
 
 def verify_results(expected_result, test_name):
@@ -114,6 +80,36 @@ def verify_results(expected_result, test_name):
                 errors.append(f"Error {key} node {node_num}: expected a delta of minus or equal {FREQ_POLLING * 2}, got {delta} (expected {expected_node_results[key]} got {result[key]}")
 
     return errors
+
+
+def run_test(test_name):
+    with open(f"tests/{test_name}.yaml") as f:
+        test_args = yaml.safe_load(f)
+
+    tasks_list, expected_result = test_args["tasks_list"], test_args["expected_result"]
+
+    # Launch and log experiment
+    os.makedirs(f"/tmp/{test_name}", exist_ok=True)
+    with open(f"/tmp/{test_name}/debug.txt", "w") as f:
+        with redirect_stdout(f):
+            run_simulation(test_name, tasks_list)
+
+    errors = verify_results(expected_result, test_name)
+    if len(errors) == 0:
+        print(f"{test_name}: ok")
+    else:
+        print(f"{test_name}: errors: \n" + "\n".join(errors))
+
+
+def main():
+    all_p = []
+    for test_name in topologies.keys():
+        p = Process(target=run_test, args=(test_name,))
+        p.start()
+        all_p.append(p)
+
+    for k in all_p:
+        k.join()
 
 
 if __name__ == "__main__":
