@@ -34,13 +34,12 @@ def is_isolated_uptime(node_num, hour_num, uptime_schedules, nodes_count):
     return True
 
 
-def execute_coordination_tasks(api: Node, tasks_list):
+def execute(api: Node):
     """
     Weaknesses:
     - Do not consume messages when executing tasks. Message can accumulate leading
       to mass responses after task is complete
     :param api:
-    :param tasks_list:
     :return:
     """
     # Setup termination condition
@@ -71,6 +70,7 @@ def execute_coordination_tasks(api: Node, tasks_list):
         all_uptimes_schedules = json.load(f)  # Get all uptimes schedules for simulation optimization
     uptimes_schedule = all_uptimes_schedules[api.node_id]  # Node uptime schedule
     retrieved_data = []  # All data retrieved from neighbors
+    tasks_list = api.args["tasks_list"][api.node_id]
     current_task = tasks_list.pop(0)  # Current task trying to be run
     results_dir = api.args["results_dir"]
 

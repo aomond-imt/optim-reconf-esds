@@ -1,0 +1,35 @@
+tasks_list:
+  0:
+    - ["provide_install", 23.5, []]
+    - ["provide_config", 5.3, []]
+    - ["provide_run", 2.1, []]
+  1:
+    - ["use_install", 15.43, ["provide_install"]]
+    - ["use_config", 5.05, ["provide_config"]]
+    - ["use_run", 5.74, ["provide_run"]]
+  2:
+    - ["use_install", 15.43, ["provide_install"]]
+    - ["use_config", 5.05, ["provide_config"]]
+    - ["use_run", 5.74, ["provide_run"]]
+expected_result:
+  0:
+    time: 700
+    finished_reconf: true
+    tot_aggregated_send: 0
+    tot_msg_sent: 13
+    tot_reconf_duration: 30.90
+    tot_uptimes_duration: 180
+  1:
+    time: 662.79
+    finished_reconf: true
+    tot_aggregated_send: 0
+    tot_msg_sent: 153   # 55 + 46 + 1 + 46 + 2 + 2 + 1
+    tot_reconf_duration: 26.22
+    tot_uptimes_duration: 203.43  # 3 * 60 + 7.43 + 3 + 13
+  2:
+    time: 662.79
+    finished_reconf: true
+    tot_aggregated_send: 0
+    tot_msg_sent: 205   # 55 + 55 + 46 + 1 + 46 + 2
+    tot_reconf_duration: 26.22
+    tot_uptimes_duration: 250.43  # 4 * 60 + 7.43 + 3
