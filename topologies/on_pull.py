@@ -1,7 +1,7 @@
 from esds.node import Node
 
 from topologies.on_coordination_logic import initialise_simulation, is_time_up, is_isolated_uptime, remaining_time, \
-    FREQ_POLLING, terminate_simulation, c
+    FREQ_POLLING, terminate_simulation, c, execute_reconf_task, is_finished
 
 
 def execute(api: Node):
@@ -83,20 +83,11 @@ def execute(api: Node):
 
             # When dependencies are resolved, execute reconf task
             if not is_time_up(api, uptime_end) and all(dep in retrieved_data for dep in dependencies):
-                api.log(f"Executing task {name}")
-                node_cons.set_power(stress_conso)
-                api.wait(time_task)
-                tot_reconf_duration += time_task
-                node_cons.set_power(idle_conso)
+                current_task, tot_reconf_duration = execute_reconf_task(api, idle_conso, name, node_cons,
+                                                                        s, stress_conso, tasks_list,
+                                                                        time_task, tot_reconf_duration)
                 # Append the task done to the retrieved_data list
                 retrieved_data.append(name)
-                if len(tasks_list) > 0:
-                    api.log("Getting next task")
-                    current_task = tasks_list.pop(0)
-                else:
-                    api.log("All tasks done")
-                    current_task = None
-                    s.buf[api.node_id] = 1
 
             # If isolated uptime, simulate the sending of the node during the remaining uptime (if dependencies need to be solved)
             if is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count) and not all(
@@ -131,7 +122,7 @@ def execute(api: Node):
                                     tot_msg_sent += 1
 
         # Check for termination condition
-        if all(buf_flag == 1 for buf_flag in s.buf):
+        if is_finished(s):
             api.log("All nodes finished, terminating")
             tot_uptimes += 1
             tot_uptimes_duration += c(api) - uptime

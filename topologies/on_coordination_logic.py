@@ -43,6 +43,10 @@ def remaining_time(api, deadline):
     return max(deadline - c(api), 0)
 
 
+def is_finished(s):
+    return all(buf_flag == 1 for buf_flag in s.buf)
+
+
 def terminate_simulation(aggregated_send, api, comms_cons, comms_conso, current_task, node_cons, results_dir, s,
                          tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes,
                          tot_uptimes_duration):
@@ -113,3 +117,20 @@ def initialise_simulation(api):
     results_dir = api.args["results_dir"]
 
     return aggregated_send, all_uptimes_schedules, comms_cons, comms_conso, current_task, idle_conso, node_cons, nodes_count, results_dir, retrieved_data, s, stress_conso, tasks_list, tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes, tot_uptimes_duration, uptimes_schedule
+
+
+def execute_reconf_task(api, idle_conso, name, node_cons, s, stress_conso, tasks_list,
+                        time_task, tot_reconf_duration):
+    api.log(f"Executing task {name}")
+    node_cons.set_power(stress_conso)
+    api.wait(time_task)
+    tot_reconf_duration += time_task
+    node_cons.set_power(idle_conso)
+    if len(tasks_list) > 0:
+        api.log("Getting next task")
+        current_task = tasks_list.pop(0)
+    else:
+        api.log("All tasks done")
+        current_task = None
+        s.buf[api.node_id] = 1
+    return current_task, tot_reconf_duration
