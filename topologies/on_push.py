@@ -1,3 +1,4 @@
+from esds import rcode
 from esds.node import Node
 
 from topologies.on_coordination_logic import initialise_simulation, is_time_up, is_isolated_uptime, remaining_time, \
@@ -63,7 +64,9 @@ def execute(api: Node):
 
         while not is_time_up(api, uptime_end) and not is_finished(s):
             if not are_all_data_shared(data_to_share, neighbor_nodes):
-                api.sendt("eth0", ("ping", api.node_id), 87, 0, timeout=remaining_time(api, uptime_end))
+                code = api.sendt("eth0", ("ping", api.node_id), 87, 0, timeout=remaining_time(api, uptime_end))
+                if code == rcode.RCode.SUCCESS:
+                    tot_msg_sent += 1
             if current_task is not None and all(dep in retrieved_data for dep in current_task[2]):
                 new_current_task, tot_reconf_duration = execute_reconf_task(api, idle_conso, current_task[0], node_cons,
                                                                             s, stress_conso, tasks_list,
@@ -74,29 +77,40 @@ def execute(api: Node):
             code, data = api.receivet("eth0", timeout=timeout)
             while data is not None and not is_time_up(api, uptime_end):
                 type_data, content_data = data
+                tot_msg_rcv += 1
                 if type_data == "ping":
                     id_sender = content_data
-                    api.sendt("eth0", ("ping_ack", api.node_id, id_sender), 87, 0, timeout=remaining_time(api, uptime_end))
+                    code = api.sendt("eth0", ("ping_ack", api.node_id, id_sender), 87, 0, timeout=remaining_time(api, uptime_end))
+                    if code == rcode.RCode.SUCCESS:
+                        tot_msg_sent += 1
                 if type_data == "ping_ack":
                     id_sender, id_original_sender = content_data
                     if id_original_sender == api.node_id:
                         for data_name, receiver_ids in data_to_share.items():
                             if id_sender not in receiver_ids:
-                                api.sendt("eth0", ("data", data_name, api.node_id), 257, 0, timeout=remaining_time(api, uptime_end))
+                                code = api.sendt("eth0", ("data", data_name, api.node_id), 257, 0, timeout=remaining_time(api, uptime_end))
+                                if code == rcode.RCode.SUCCESS:
+                                    tot_msg_sent += 1
                 if type_data == "data":
                     data_name, id_sender = content_data
                     if data_name not in data_to_share.keys():
                         data_to_share[data_name] = [id_sender]
-                        api.sendt("eth0", ("data_ack", data_name, api.node_id), 87, 0, timeout=remaining_time(api, uptime_end))
+                        code = api.sendt("eth0", ("data_ack", data_name, api.node_id), 87, 0, timeout=remaining_time(api, uptime_end))
+                        if code == rcode.RCode.SUCCESS:
+                            tot_msg_sent += 1
                 if type_data == "data_ack":
                     data_name, id_sender = content_data
                     if id_sender not in data_to_share[data_name]:
                         data_to_share[data_name].append(id_sender)
                 code, data = api.receivet("eth0", timeout=0.01)
 
+        tot_uptimes_duration += c(api) - uptime
+
         if is_finished(s):
             api.log("All nodes finished, terminating")
             break
+
+        tot_uptimes += 1
 
     terminate_simulation(aggregated_send, api, comms_cons, comms_conso, current_task, node_cons, results_dir, s,
                          tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes,
