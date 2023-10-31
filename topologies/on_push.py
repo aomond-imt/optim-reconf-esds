@@ -64,10 +64,11 @@ def execute(api: Node):
 
         while not is_time_up(api, uptime_end) and not is_finished(s):
             if not are_all_data_shared(data_to_share, neighbor_nodes):
-                code = api.sendt("eth0", ("ping", api.node_id), 87, 0, timeout=remaining_time(api, uptime_end))
+                # api.log(str(("ping", api.node_id)))
+                code = api.sendt("eth0", ("ping", (api.node_id, data_to_share.keys())), 87, 0, timeout=remaining_time(api, uptime_end))
                 if code == rcode.RCode.SUCCESS:
                     tot_msg_sent += 1
-            if current_task is not None and all(dep in retrieved_data for dep in current_task[2]):
+            if current_task is not None and all(dep in data_to_share.keys() for dep in current_task[2]):
                 new_current_task, tot_reconf_duration = execute_reconf_task(api, idle_conso, current_task[0], node_cons,
                                                                             s, stress_conso, tasks_list,
                                                                             current_task[1], tot_reconf_duration)
@@ -77,25 +78,30 @@ def execute(api: Node):
             code, data = api.receivet("eth0", timeout=timeout)
             while data is not None and not is_time_up(api, uptime_end):
                 type_data, content_data = data
+                # api.log(f"received {str((code,data))}")
                 tot_msg_rcv += 1
                 if type_data == "ping":
-                    id_sender = content_data
-                    code = api.sendt("eth0", ("ping_ack", api.node_id, id_sender), 87, 0, timeout=remaining_time(api, uptime_end))
-                    if code == rcode.RCode.SUCCESS:
-                        tot_msg_sent += 1
+                    id_sender, data_shared = content_data
+                    if any(d not in data_to_share.keys() for d in data_shared):
+                        # api.log(str(("ping_ack", (api.node_id, id_sender))))
+                        code = api.sendt("eth0", ("ping_ack", (api.node_id, id_sender)), 87, 0, timeout=remaining_time(api, uptime_end))
+                        if code == rcode.RCode.SUCCESS:
+                            tot_msg_sent += 1
                 if type_data == "ping_ack":
                     id_sender, id_original_sender = content_data
                     if id_original_sender == api.node_id:
                         for data_name, receiver_ids in data_to_share.items():
                             if id_sender not in receiver_ids:
-                                code = api.sendt("eth0", ("data", data_name, api.node_id), 257, 0, timeout=remaining_time(api, uptime_end))
+                                # api.log(str(("data", (data_name, api.node_id))))
+                                code = api.sendt("eth0", ("data", (data_name, api.node_id)), 257, 0, timeout=remaining_time(api, uptime_end))
                                 if code == rcode.RCode.SUCCESS:
                                     tot_msg_sent += 1
                 if type_data == "data":
                     data_name, id_sender = content_data
                     if data_name not in data_to_share.keys():
                         data_to_share[data_name] = [id_sender]
-                        code = api.sendt("eth0", ("data_ack", data_name, api.node_id), 87, 0, timeout=remaining_time(api, uptime_end))
+                        # api.log(str(("data_ack", (data_name, api.node_id))))
+                        code = api.sendt("eth0", ("data_ack", (data_name, api.node_id)), 87, 0, timeout=remaining_time(api, uptime_end))
                         if code == rcode.RCode.SUCCESS:
                             tot_msg_sent += 1
                 if type_data == "data_ack":
@@ -103,6 +109,8 @@ def execute(api: Node):
                     if id_sender not in data_to_share[data_name]:
                         data_to_share[data_name].append(id_sender)
                 code, data = api.receivet("eth0", timeout=0.01)
+                # if data is None:
+                    # api.log("No more data to process")
 
         tot_uptimes_duration += c(api) - uptime
 

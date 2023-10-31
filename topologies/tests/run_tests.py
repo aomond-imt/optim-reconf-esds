@@ -6,20 +6,22 @@ from multiprocessing import Process
 import esds
 import numpy as np
 import yaml
+from icecream import ic
 
 env_with_pythonpath = os.environ.copy()
 env_with_pythonpath["PYTHONPATH"] = env_with_pythonpath["PYTHONPATH"] + ":" + os.path.dirname(os.path.realpath(__file__))
 FREQ_POLLING = 1
+LORA_BW = 50_000
 
 
 def clique(nodes_count):
-    B = np.full((nodes_count, nodes_count), 50000)
+    B = np.full((nodes_count, nodes_count), LORA_BW)
     L = np.full((nodes_count, nodes_count), 0)
     return B, L
 
 
 def chain(nodes_count):
-    bw = 50_000
+    bw = LORA_BW
     B = np.array([
         [bw, bw, 0],
         [bw, bw, bw],
@@ -30,18 +32,38 @@ def chain(nodes_count):
 
 
 topologies = {
-    "solo_on": clique(1),
-    "standard_comm": clique(2),
-    "overlaps_sending": clique(3),
-    "actions_overflow": clique(2),
-    "chained_one_provide": chain(3),
-    "chained_three_provides": chain(3),
+    "pull": {
+        "solo_on": clique(1),
+        "standard_comm": clique(2),
+        "overlaps_sending": clique(3),
+        "actions_overflow": clique(2),
+        "chained_one_provide": chain(3),
+        "chained_three_provides": chain(3),
+    },
+    "push": {
+        "unfinished_reconf": clique(1),
+        "use_provide": clique(2)
+    }
 }
 
 
-def run_simulation(test_name, tasks_list):
-    B, L = topologies[test_name]
+def compute_neighborhood(topology):
+    node_neighbors = []
+    for node_id, other_nodes in enumerate(topology):
+        neighbors = []
+        for other_node_id in range(len(other_nodes)):
+            if node_id != other_node_id:
+                if topology[node_id][other_node_id] > 0:
+                    neighbors.append(other_node_id)
+        node_neighbors.append(neighbors)
+
+    return node_neighbors
+
+
+def run_simulation(test_name, tasks_list, type_comms):
+    B, L = topologies[type_comms][test_name]
     s = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
+    node_neighbors = compute_neighborhood(B)
     nodes_count = len(tasks_list.keys())
     arguments = {
         "stress_conso": 1.358,
@@ -50,12 +72,13 @@ def run_simulation(test_name, tasks_list):
         "bandwidth": 6250,
         "results_dir": f"/tmp/{test_name}",
         "nodes_count": nodes_count,
-        "uptimes_schedule_name": f"tests/{test_name}.json",
-        "tasks_list": tasks_list
+        "uptimes_schedule_name": f"tests/{type_comms}/{test_name}.json",
+        "tasks_list": tasks_list,
+        "neighbor_nodes": node_neighbors
     }
     sys.path.append("..")
     for node_num in range(nodes_count):
-        s.create_node("on_pull", interfaces=["eth0"], args=arguments)
+        s.create_node(f"on_{type_comms}", interfaces=["eth0"], args=arguments)
 
     s.run(interferences=False)
 
@@ -82,8 +105,8 @@ def verify_results(expected_result, test_name):
     return errors
 
 
-def run_test(test_name):
-    with open(f"tests/{test_name}.yaml") as f:
+def run_test(test_name, type_comms):
+    with open(f"tests/{type_comms}/{test_name}.yaml") as f:
         test_args = yaml.safe_load(f)
 
     tasks_list, expected_result = test_args["tasks_list"], test_args["expected_result"]
@@ -92,7 +115,7 @@ def run_test(test_name):
     os.makedirs(f"/tmp/{test_name}", exist_ok=True)
     with open(f"/tmp/{test_name}/debug.txt", "w") as f:
         with redirect_stdout(f):
-            run_simulation(test_name, tasks_list)
+            run_simulation(test_name, tasks_list, type_comms)
 
     errors = verify_results(expected_result, test_name)
     if len(errors) == 0:
@@ -102,9 +125,10 @@ def run_test(test_name):
 
 
 def main():
+    type_comms = "push"
     all_p = []
-    for test_name in topologies.keys():
-        p = Process(target=run_test, args=(test_name,))
+    for test_name in topologies[type_comms].keys():
+        p = Process(target=run_test, args=(test_name,type_comms))
         p.start()
         all_p.append(p)
 
