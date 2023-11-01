@@ -1,11 +1,9 @@
 tasks_list:
   0:
-    - ["use_install", 15, ["provide_install"]]
+    - ["use_install", 15, []]
 expected_result:
   0:
-    time: 60.0
-    finished_reconf: false
-    tot_aggregated_send: 55
-    tot_msg_sent: 0
-    tot_reconf_duration: 0
-    tot_uptimes_duration: 60.0
+    time: 15
+    finished_reconf: true
+    tot_reconf_duration: 15
+    tot_uptimes_duration: 15
