@@ -31,6 +31,32 @@ def chain(nodes_count):
     return B, L
 
 
+def ring_4(nodes_count):
+    bw = LORA_BW
+    B = np.array([
+        [bw, bw, 0, bw],
+        [bw, bw, bw, 0],
+        [0, bw, bw, bw],
+        [bw, 0, bw, bw],
+    ])
+    L = np.full((4, 4), 0)
+    return B, L
+
+
+def ring_6(nodes_count):
+    bw = LORA_BW
+    B = np.array([
+        [bw, bw, 0, 0, 0, bw],
+        [bw, bw, bw, 0, 0, 0],
+        [0, bw, bw, bw, 0, 0],
+        [0, 0, bw, bw, bw, 0],
+        [0, 0, 0, bw, bw, bw],
+        [bw, 0, 0, 0, bw, bw],
+    ])
+    L = np.full((6, 6), 0)
+    return B, L
+
+
 topologies = {
     "pull": {
         "solo_on": clique(1),
@@ -39,6 +65,8 @@ topologies = {
         "actions_overflow": clique(2),
         "chained_one_provide": chain(3),
         "chained_three_provides": chain(3),
+        "ring_one_provide": ring_4(4),
+        "ring_three_aggregators": ring_6(6),
     },
     "static_pull": {
         "solo_on": clique(1),

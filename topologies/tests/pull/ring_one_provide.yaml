@@ -1,0 +1,31 @@
+tasks_list:
+  0:
+    - ["provide_install", 5.51, []]
+  1:
+    - ["use_install", 3.22, ["provide_install"]]
+  2:
+    - ["use_install", 3.22, ["provide_install"]]
+  3:
+    - ["use_install", 3.22, ["provide_install"]]
+expected_result:
+  0:
+    time: 260
+    finished_reconf: true
+    tot_reconf_duration: 5.51
+    tot_uptimes_duration: 120
+  1:
+    time: 310
+    finished_reconf: true
+    tot_reconf_duration: 3.22
+    tot_uptimes_duration: 120
+  2:
+    time: 355
+    finished_reconf: true
+    tot_reconf_duration: 3.22
+    tot_uptimes_duration: 115
+  3:
+    time: 355
+    finished_reconf: true
+    tot_reconf_duration: 3.22
+    tot_uptimes_duration: 65
+

@@ -1,0 +1,46 @@
+tasks_list:
+  0:
+    - ["provide_install_0", 2.51, []]
+  1:
+    - ["use_install_4", 5.22, ["provide_install_4"]]
+  2:
+    - ["provide_install_2", 4.21, []]
+  3:
+    - ["use_install_0", 2.22, ["provide_install_0"]]
+  4:
+    - ["provide_install_4", 4.51, []]
+  5:
+    - ["use_install_2", 3.22, ["provide_install_2"]]
+expected_result:
+  0:
+    time: 860
+    finished_reconf: true
+    tot_reconf_duration: 2.51
+    tot_uptimes_duration: 180
+  1:
+    time: 910
+    finished_reconf: true
+    tot_reconf_duration: 5.22
+    tot_uptimes_duration: 180
+  2:
+    time: 960
+    finished_reconf: true
+    tot_reconf_duration: 4.21
+    tot_uptimes_duration: 180
+  3:
+    time: 1010
+    finished_reconf: true
+    tot_reconf_duration: 2.22
+    tot_uptimes_duration: 180
+  4:
+    time: 1053.22
+    finished_reconf: true
+    tot_reconf_duration: 4.51
+    tot_uptimes_duration: 176.78
+  5:
+    time: 1053.22
+    finished_reconf: true
+    tot_reconf_duration: 3.22
+    tot_uptimes_duration: 123.22
+
+
