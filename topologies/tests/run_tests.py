@@ -42,7 +42,8 @@ topologies = {
     },
     "push": {
         "unfinished_reconf": clique(1),
-        "use_provide": clique(2)
+        "use_provide": clique(2),
+        "concurrent_provide_msgs": clique(4),
     }
 }
 

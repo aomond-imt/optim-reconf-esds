@@ -1,0 +1,38 @@
+tasks_list:
+  0:
+    - ["provide_install", 10, []]
+  1:
+    - ["provide_install", 10, []]
+  2:
+    - ["use_install", 7, ["provide_install"]]
+  3:
+    - ["use_install", 10, ["provide_install"]]
+expected_result:
+  0:
+    time: 21
+    finished_reconf: true
+    tot_aggregated_send: 0
+    tot_msg_sent: 21  # 1ping + 1-2data + 10ping + 8*ping_after_receive
+    tot_reconf_duration: 10
+    tot_uptimes_duration: 21
+  1:
+    time: 21
+    finished_reconf: true
+    tot_aggregated_send: 0
+    tot_msg_sent: 3  # 1ping_ack + 1data_ack + 1ping_ack
+    tot_reconf_duration: 10
+    tot_uptimes_duration: 21
+  2:
+    time: 21
+    finished_reconf: true
+    tot_aggregated_send: 0
+    tot_msg_sent: 43  # 34ping + 1data + 5ping + 3*ping_after_receive
+    tot_reconf_duration: 7
+    tot_uptimes_duration: 21
+  3:
+    time: 21
+    finished_reconf: true
+    tot_aggregated_send: 0
+    tot_msg_sent: 3  # 1ping_ack + 1data_ack + 1ping_ack
+    tot_reconf_duration: 10
+    tot_uptimes_duration: 21
