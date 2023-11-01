@@ -78,9 +78,16 @@ def execute(api: Node):
             # if current_task is None and len(deps_to_retrieve) == 0:
             #     timeout = remaining_time(api, uptime_end)
             # else:
+            buf = []
             timeout = 0.05
             code, data = api.receivet("eth0", timeout=timeout)
             while data is not None and not is_time_up(api, uptime_end) and not is_finished(s):
+                type_msg, dep = data
+                if data not in buf:
+                    buf.append((type_msg, dep))
+                code, data = api.receivet("eth0", timeout=0.05)
+
+            for data in buf:
                 type_msg, dep = data
                 api.log(f"Treat: {type_msg} {dep}")
                 if type_msg == "req":
@@ -92,13 +99,17 @@ def execute(api: Node):
                     if dep not in deps_retrieved:
                         deps_retrieved.append(dep)
                         deps_to_retrieve.remove(dep)
-                code, data = api.receivet("eth0", timeout=0.05)
+                # code, data = api.receivet("eth0", timeout=0.05)
 
             if not is_finished(s):
-                api.wait(min(1, remaining_time(api, uptime_end)))
+                api.wait(min(0.5, remaining_time(api, uptime_end)))
 
         tot_uptimes += 1
         tot_uptimes_duration += c(api) - uptime
+
+        if is_finished(s):
+            api.log("All nodes finished, terminating")
+            break
 
     terminate_simulation(aggregated_send, api, comms_cons, comms_conso, current_task, node_cons, results_dir, s,
                          tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes,

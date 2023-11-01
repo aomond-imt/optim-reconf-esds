@@ -26,5 +26,5 @@ expected_result:
     tot_aggregated_send: 0
     tot_msg_sent: 20
     tot_reconf_duration: 11.12
-    tot_uptimes_duration: 35.24
+    tot_uptimes_duration: 24.24
 
