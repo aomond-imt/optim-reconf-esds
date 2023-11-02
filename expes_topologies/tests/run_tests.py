@@ -11,92 +11,38 @@ import numpy as np
 import yaml
 from icecream import ic
 
+from topologies import clique, chain_3, chain_5, ring_6, ring_4
+
 env_with_pythonpath = os.environ.copy()
 env_with_pythonpath["PYTHONPATH"] = env_with_pythonpath["PYTHONPATH"] + ":" + os.path.dirname(os.path.realpath(__file__))
 FREQ_POLLING = 1
 LORA_BW = 50_000
 
 
-def clique(nodes_count):
-    B = np.full((nodes_count, nodes_count), LORA_BW)
-    L = np.full((nodes_count, nodes_count), 0)
-    return B, L
-
-
-def chain_3(nodes_count):
-    bw = LORA_BW
-    B = np.array([
-        [bw, bw, 0],
-        [bw, bw, bw],
-        [0, bw, bw],
-    ])
-    L = np.full((3, 3), 0)
-    return B, L
-
-
-def chain_5(nodes_count):
-    bw = LORA_BW
-    B = np.array([
-        [bw, bw, 0, 0, 0],
-        [bw, bw, bw, 0, 0],
-        [0, bw, bw, bw, 0],
-        [0, 0, bw, bw, bw],
-        [0, 0, 0, bw, bw],
-    ])
-    L = np.full((5, 5), 0)
-    return B, L
-
-
-def ring_4(nodes_count):
-    bw = LORA_BW
-    B = np.array([
-        [bw, bw, 0, bw],
-        [bw, bw, bw, 0],
-        [0, bw, bw, bw],
-        [bw, 0, bw, bw],
-    ])
-    L = np.full((4, 4), 0)
-    return B, L
-
-
-def ring_6(nodes_count):
-    bw = LORA_BW
-    B = np.array([
-        [bw, bw, 0, 0, 0, bw],
-        [bw, bw, bw, 0, 0, 0],
-        [0, bw, bw, bw, 0, 0],
-        [0, 0, bw, bw, bw, 0],
-        [0, 0, 0, bw, bw, bw],
-        [bw, 0, 0, 0, bw, bw],
-    ])
-    L = np.full((6, 6), 0)
-    return B, L
-
-
-topologies = {
+tests_topologies = {
     "pull": {
-        "solo_on": clique(1),
-        "use_provide": clique(2),
-        "overlaps_sending": clique(3),
-        "actions_overflow": clique(2),
-        "chained_one_provide": chain_3(3),
-        "chained_three_provides": chain_3(3),
-        "ring_one_provide": ring_4(4),
-        "ring_three_aggregators": ring_6(6),
-        "chained_aggregator_use": chain_5(5),
+        "solo_on": clique(1, LORA_BW),
+        "use_provide": clique(2, LORA_BW),
+        "overlaps_sending": clique(3, LORA_BW),
+        "actions_overflow": clique(2, LORA_BW),
+        "chained_one_provide": chain_3(3, LORA_BW),
+        "chained_three_provides": chain_3(3, LORA_BW),
+        "ring_one_provide": ring_4(4, LORA_BW),
+        "ring_three_aggregators": ring_6(6, LORA_BW),
+        "chained_aggregator_use": chain_5(5, LORA_BW),
     },
     "static_pull": {
-        "solo_on": clique(1),
-        "standard_comm": clique(2),
-        "overlaps_sending": clique(3),
-        "actions_overflow": clique(2),
-        "chained_one_provide": chain_3(3),
-        "chained_three_provides": chain_3(3),
+        "solo_on": clique(1, LORA_BW),
+        "standard_comm": clique(2, LORA_BW),
+        "overlaps_sending": clique(3, LORA_BW),
+        "actions_overflow": clique(2, LORA_BW),
+        "chained_one_provide": chain_3(3, LORA_BW),
+        "chained_three_provides": chain_3(3, LORA_BW),
     },
     "push": {
-        "unfinished_reconf": clique(1),
-        "use_provide": clique(2),
-        "concurrent_provide_msgs": clique(4),
+        "unfinished_reconf": clique(1, LORA_BW),
+        "use_provide": clique(2, LORA_BW),
+        "concurrent_provide_msgs": clique(4, LORA_BW),
     }
 }
 
@@ -115,7 +61,7 @@ def compute_neighborhood(topology):
 
 
 def run_simulation(test_name, tasks_list, type_comms):
-    B, L = topologies[type_comms][test_name]
+    B, L = tests_topologies[type_comms][test_name]
     s = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
     node_neighbors = compute_neighborhood(B)
     nodes_count = len(tasks_list.keys())
@@ -183,7 +129,7 @@ def run_test(test_name, type_comms):
 def main():
     type_comms = "pull"
     all_p = []
-    for test_name in topologies[type_comms].keys():
+    for test_name in tests_topologies[type_comms].keys():
         p = Process(target=run_test, args=(test_name,type_comms))
         p.start()
         all_p.append(p)
@@ -192,7 +138,7 @@ def main():
         k.join()
     # nb_cores = math.ceil(cpu_count() * 0.5)
     # pool = Pool(nb_cores)
-    # for test_name in topologies[type_comms].keys():
+    # for test_name in tests_topologies[type_comms].keys():
     #     exec_esds = pool.apply_async(
     #         run_test,
     #         args=(test_name,type_comms)

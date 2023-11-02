@@ -91,7 +91,7 @@ def initialise_simulation(api):
     if api.node_id == 0:
         s = shared_memory.SharedMemory(f"shm_cps_{expe_name}", create=True, size=nodes_count)
     else:
-        time.sleep(5)
+        time.sleep(0.5)
         s = shared_memory.SharedMemory(f"shm_cps_{expe_name}")
 
     # Energy calibration

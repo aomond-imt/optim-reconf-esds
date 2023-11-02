@@ -1,7 +1,7 @@
 from esds import rcode
 from esds.node import Node
 
-from topologies.on_coordination_logic import initialise_simulation, is_time_up, is_isolated_uptime, remaining_time, \
+from expes_topologies.on_coordination_logic import initialise_simulation, is_time_up, is_isolated_uptime, remaining_time, \
     FREQ_POLLING, terminate_simulation, c, is_finished, execute_reconf_task
 
 
