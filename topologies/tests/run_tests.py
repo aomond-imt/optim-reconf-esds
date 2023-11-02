@@ -75,14 +75,14 @@ def ring_6(nodes_count):
 
 topologies = {
     "pull": {
-        # "solo_on": clique(1),
-        # "use_provide": clique(2),
-        # "overlaps_sending": clique(3),
-        # "actions_overflow": clique(2),
-        # "chained_one_provide": chain_3(3),
-        # "chained_three_provides": chain_3(3),
-        # "ring_one_provide": ring_4(4),
-        # "ring_three_aggregators": ring_6(6),
+        "solo_on": clique(1),
+        "use_provide": clique(2),
+        "overlaps_sending": clique(3),
+        "actions_overflow": clique(2),
+        "chained_one_provide": chain_3(3),
+        "chained_three_provides": chain_3(3),
+        "ring_one_provide": ring_4(4),
+        "ring_three_aggregators": ring_6(6),
         "chained_aggregator_use": chain_5(5),
     },
     "static_pull": {
