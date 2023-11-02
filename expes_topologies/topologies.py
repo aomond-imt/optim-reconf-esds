@@ -7,47 +7,26 @@ def clique(nodes_count, bw):
     return B, L
 
 
-def chain_3(nodes_count, bw):
-    B = np.array([
-        [bw, bw, 0],
-        [bw, bw, bw],
-        [0, bw, bw],
-    ])
-    L = np.full((3, 3), 0)
+def symmetricize(arr1D):
+    ID = np.arange(arr1D.size)
+    return arr1D[np.abs(ID - ID[:,None])]
+
+
+def chain(nodes_count, bw):
+    if nodes_count < 3:
+        node_0 = np.array([bw]*nodes_count)
+    else:
+        node_0 = np.array([bw, bw] + [0]*(nodes_count-2))
+    B = symmetricize(node_0)
+    L = np.full((nodes_count, nodes_count), 0)
     return B, L
 
 
-def chain_5(nodes_count, bw):
-    B = np.array([
-        [bw, bw, 0, 0, 0],
-        [bw, bw, bw, 0, 0],
-        [0, bw, bw, bw, 0],
-        [0, 0, bw, bw, bw],
-        [0, 0, 0, bw, bw],
-    ])
-    L = np.full((5, 5), 0)
-    return B, L
-
-
-def ring_4(nodes_count, bw):
-    B = np.array([
-        [bw, bw, 0, bw],
-        [bw, bw, bw, 0],
-        [0, bw, bw, bw],
-        [bw, 0, bw, bw],
-    ])
-    L = np.full((4, 4), 0)
-    return B, L
-
-
-def ring_6(nodes_count, bw):
-    B = np.array([
-        [bw, bw, 0, 0, 0, bw],
-        [bw, bw, bw, 0, 0, 0],
-        [0, bw, bw, bw, 0, 0],
-        [0, 0, bw, bw, bw, 0],
-        [0, 0, 0, bw, bw, bw],
-        [bw, 0, 0, 0, bw, bw],
-    ])
-    L = np.full((6, 6), 0)
+def ring(nodes_count, bw):
+    if nodes_count < 4:
+        node_0 = np.array([bw]*nodes_count)
+    else:
+        node_0 = np.array([bw, bw] + ([0]*(nodes_count-3)) + [bw])
+    B = symmetricize(node_0)
+    L = np.full((nodes_count, nodes_count), 0)
     return B, L
