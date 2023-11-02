@@ -1,7 +1,6 @@
 import math
 import os
 import sys
-import time
 import traceback
 from contextlib import redirect_stdout
 from multiprocessing import cpu_count
@@ -35,7 +34,6 @@ use_cases_tasks_lists = {
 
 
 def run_simulation(parameters, root_results_dir):
-    print("doing simulation")
     try:
         coordination_name, network_topology, nodes_count, services_topology = parameters["use_case"].split("-")
         nodes_count = int(nodes_count)
@@ -49,7 +47,7 @@ def run_simulation(parameters, root_results_dir):
             "bandwidth": parameters["bandwidth"],
             "results_dir": expe_results_dir,
             "nodes_count": nodes_count,
-            # "uptimes_schedule_name": parameters["uptimes_schedule_name"],
+            # "uptimes_schedule_name": f"tests/pull/chained_aggregator_use.json",
             # "id_run": f"tests/pull/chained_aggregator_use.json",
             "uptimes_schedule_name": f"uptimes_schedules/{parameters['id_run']}-{parameters['uptime_duration']}.json",
             "tasks_list": use_cases_tasks_lists[f"{services_topology}-{network_topology}"][coordination_name][nodes_count],
@@ -84,8 +82,10 @@ def main(root_results_dir):
 
 
 if __name__ == "__main__":
-    # Initialise sweeper in global scope to be copied on all processes
-    root_results_dir = f"/home/aomond/results-reconfiguration-esds/topologies/tests"
+    if len(sys.argv) > 1:
+        root_results_dir = sys.argv[1]
+    else:
+        root_results_dir = f"{os.environ['HOME']}/results-reconfiguration-esds/topologies/tests"
     parameter_list = {
         "use_case": ["deploy-chain-5-default"],
         "stress_conso": [1.358],
@@ -96,6 +96,8 @@ if __name__ == "__main__":
         "uptime_duration": [60]
     }
     sweeps = sweep(parameter_list)
+
+    # Initialise sweeper in global scope to be copied on all processes
     sweeper = ParamSweeper(
         persistence_dir=os.path.join(root_results_dir, "sweeper"), sweeps=sweeps, save_sweeps=True
     )
