@@ -3,7 +3,8 @@ tasks_list:
     - ["use_install", 15, []]
 expected_result:
   0:
-    time: 15
+    global_termination_time: 15
+    local_termination_time: 15
     finished_reconf: true
     tot_reconf_duration: 15
     tot_uptimes_duration: 15

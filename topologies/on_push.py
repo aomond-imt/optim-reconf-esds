@@ -122,4 +122,4 @@ def execute(api: Node):
 
     terminate_simulation(aggregated_send, api, comms_cons, comms_conso, current_task, node_cons, results_dir, s,
                          tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes,
-                         tot_uptimes_duration)
+                         tot_uptimes_duration, 0)

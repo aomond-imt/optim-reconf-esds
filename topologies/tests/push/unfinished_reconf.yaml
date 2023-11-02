@@ -3,7 +3,7 @@ tasks_list:
     - ["use_install", 15, ["provide_install"]]
 expected_result:
   0:
-    time: 60.0
+    global_termination_time: 60.0
     finished_reconf: false
     tot_aggregated_send: 0
     tot_msg_sent: 0

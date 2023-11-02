@@ -37,6 +37,7 @@ def execute(api: Node):
 
     deps_to_retrieve = []
     deps_retrieved = []
+    local_termination = 0
 
     # Duty-cycle simulation
     for uptime, duration in uptimes_schedule:
@@ -68,6 +69,8 @@ def execute(api: Node):
                 )
                 deps_retrieved.append(current_task[0])
                 current_task = new_current_task
+                if current_task is None:
+                    local_termination = c(api)
 
             # Ask for missing deps
             if len(deps_to_retrieve) > 0:
@@ -96,7 +99,8 @@ def execute(api: Node):
                     elif dep not in deps_to_retrieve:
                         deps_to_retrieve.append(dep)
                 if type_msg == "res":
-                    if dep not in deps_retrieved:
+                    # Non-interested nodes do not retrieve dep
+                    if dep in deps_to_retrieve and dep not in deps_retrieved:
                         deps_retrieved.append(dep)
                         deps_to_retrieve.remove(dep)
                 # code, data = api.receivet("eth0", timeout=0.05)
@@ -113,4 +117,4 @@ def execute(api: Node):
 
     terminate_simulation(aggregated_send, api, comms_cons, comms_conso, current_task, node_cons, results_dir, s,
                          tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes,
-                         tot_uptimes_duration)
+                         tot_uptimes_duration, local_termination)

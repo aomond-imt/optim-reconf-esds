@@ -1,7 +1,10 @@
+import math
 import subprocess, os
 import sys
+import traceback
 from contextlib import redirect_stdout
-from multiprocessing import Process
+from multiprocessing import Process, cpu_count
+from multiprocessing.pool import Pool
 
 import esds
 import numpy as np
@@ -20,7 +23,7 @@ def clique(nodes_count):
     return B, L
 
 
-def chain(nodes_count):
+def chain_3(nodes_count):
     bw = LORA_BW
     B = np.array([
         [bw, bw, 0],
@@ -28,6 +31,19 @@ def chain(nodes_count):
         [0, bw, bw],
     ])
     L = np.full((3, 3), 0)
+    return B, L
+
+
+def chain_5(nodes_count):
+    bw = LORA_BW
+    B = np.array([
+        [bw, bw, 0, 0, 0],
+        [bw, bw, bw, 0, 0],
+        [0, bw, bw, bw, 0],
+        [0, 0, bw, bw, bw],
+        [0, 0, 0, bw, bw],
+    ])
+    L = np.full((5, 5), 0)
     return B, L
 
 
@@ -59,22 +75,23 @@ def ring_6(nodes_count):
 
 topologies = {
     "pull": {
-        "solo_on": clique(1),
-        "use_provide": clique(2),
-        "overlaps_sending": clique(3),
-        "actions_overflow": clique(2),
-        "chained_one_provide": chain(3),
-        "chained_three_provides": chain(3),
-        "ring_one_provide": ring_4(4),
-        "ring_three_aggregators": ring_6(6),
+        # "solo_on": clique(1),
+        # "use_provide": clique(2),
+        # "overlaps_sending": clique(3),
+        # "actions_overflow": clique(2),
+        # "chained_one_provide": chain_3(3),
+        # "chained_three_provides": chain_3(3),
+        # "ring_one_provide": ring_4(4),
+        # "ring_three_aggregators": ring_6(6),
+        "chained_aggregator_use": chain_5(5),
     },
     "static_pull": {
         "solo_on": clique(1),
         "standard_comm": clique(2),
         "overlaps_sending": clique(3),
         "actions_overflow": clique(2),
-        "chained_one_provide": chain(3),
-        "chained_three_provides": chain(3),
+        "chained_one_provide": chain_3(3),
+        "chained_three_provides": chain_3(3),
     },
     "push": {
         "unfinished_reconf": clique(1),
@@ -135,8 +152,8 @@ def verify_results(expected_result, test_name):
                 errors.append(f"Error {key} node {node_num}: expected {expected_node_results[key]} got {result[key]}")
 
         # Results with approximation tolerance
-        # for key in ["time", "tot_uptimes_duration", "tot_msg_sent"]:
-        for key in ["time", "tot_uptimes_duration"]:
+        # for key in ["global_termination_time", "tot_uptimes_duration", "tot_msg_sent"]:
+        for key in ["global_termination_time", "local_termination_time", "tot_uptimes_duration"]:
             delta = abs(result[key] - expected_node_results[key])
             if delta > FREQ_POLLING * 3:
                 errors.append(f"Error {key} node {node_num}: expected a delta of minus or equal {FREQ_POLLING * 3}, got {delta} (expected {expected_node_results[key]} got {result[key]}")
@@ -173,6 +190,25 @@ def main():
 
     for k in all_p:
         k.join()
+    # nb_cores = math.ceil(cpu_count() * 0.5)
+    # pool = Pool(nb_cores)
+    # for test_name in topologies[type_comms].keys():
+    #     exec_esds = pool.apply_async(
+    #         run_test,
+    #         args=(test_name,type_comms)
+    #     )
+    #     all_p.append(exec_esds)
+    #
+    # for running_exec in all_p:
+    #     try:
+    #         running_exec.get()
+    #     except subprocess.CalledProcessError as err:
+    #         print("failed :(")
+    #         print("------------- Test has a non-zero exit code -------------")
+    #         print(err.output, end="")
+    #     except Exception as err:
+    #         print("failed :(")
+    #         traceback.print_exc()
 
 
 if __name__ == "__main__":

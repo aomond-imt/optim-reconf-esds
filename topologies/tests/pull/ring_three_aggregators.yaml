@@ -13,32 +13,38 @@ tasks_list:
     - ["use_install_2", 3.22, ["provide_install_2"]]
 expected_result:
   0:
-    time: 860
+    global_termination_time: 860
+    local_termination_time: 2.51
     finished_reconf: true
     tot_reconf_duration: 2.51
     tot_uptimes_duration: 180
   1:
-    time: 910
+    global_termination_time: 910
+    local_termination_time: 606.22
     finished_reconf: true
     tot_reconf_duration: 5.22
     tot_uptimes_duration: 180
   2:
-    time: 960
+    global_termination_time: 960
+    local_termination_time: 104.21
     finished_reconf: true
     tot_reconf_duration: 4.21
     tot_uptimes_duration: 180
   3:
-    time: 1010
+    global_termination_time: 1010
+    local_termination_time: 953.22
     finished_reconf: true
     tot_reconf_duration: 2.22
     tot_uptimes_duration: 180
   4:
-    time: 1053.22
+    global_termination_time: 1054.22
+    local_termination_time: 204.51
     finished_reconf: true
     tot_reconf_duration: 4.51
     tot_uptimes_duration: 176.78
   5:
-    time: 1053.22
+    global_termination_time: 1054.22
+    local_termination_time: 1054.22
     finished_reconf: true
     tot_reconf_duration: 3.22
     tot_uptimes_duration: 123.22

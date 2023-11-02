@@ -49,7 +49,7 @@ def is_finished(s):
 
 def terminate_simulation(aggregated_send, api, comms_cons, comms_conso, current_task, node_cons, results_dir, s,
                          tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes,
-                         tot_uptimes_duration):
+                         tot_uptimes_duration, local_termination):
     # Terminate
     api.log("Terminating")
     api.turn_off()
@@ -66,7 +66,8 @@ def terminate_simulation(aggregated_send, api, comms_cons, comms_conso, current_
     with open(f"{results_dir}/{api.node_id}.yaml", "w") as f:
         yaml.safe_dump({
             "finished_reconf": current_task is None,
-            "time": c(api),
+            "global_termination_time": c(api),
+            "local_termination_time": local_termination,
             "node_cons": node_cons.energy,
             "comms_cons": float(comms_cons.get_energy() + aggregated_send * (257 / 6250) * comms_conso),
             "tot_uptimes": tot_uptimes,
@@ -90,7 +91,7 @@ def initialise_simulation(api):
     if api.node_id == 0:
         s = shared_memory.SharedMemory(f"shm_cps_{expe_name}", create=True, size=nodes_count)
     else:
-        time.sleep(0.5)
+        time.sleep(5)
         s = shared_memory.SharedMemory(f"shm_cps_{expe_name}")
 
     # Energy calibration

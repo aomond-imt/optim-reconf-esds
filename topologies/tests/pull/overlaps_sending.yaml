@@ -7,17 +7,20 @@ tasks_list:
     - ["use_install", 3.12, ["provide_install"]]
 expected_result:
   0:
-    time: 204.12
+    global_termination_time: 204.12
+    local_termination_time: 15.5
     finished_reconf: true
     tot_reconf_duration: 15.5
     tot_uptimes_duration: 64.12
   1:
-    time: 204.12
+    global_termination_time: 204.12
+    local_termination_time: 204.12
     finished_reconf: true
     tot_reconf_duration: 3.12
     tot_uptimes_duration: 64.12
   2:
-    time: 204.12
+    global_termination_time: 204.12
+    local_termination_time: 204.12
     finished_reconf: true
     tot_reconf_duration: 3.12
     tot_uptimes_duration: 64.12
