@@ -30,3 +30,18 @@ def ring(nodes_count, bw):
     B = symmetricize(node_0)
     L = np.full((nodes_count, nodes_count), 0)
     return B, L
+
+
+def star(nodes_count, bw):
+    all_arrays = [np.array([bw]*nodes_count)]
+    for dep_num in range(1, nodes_count):
+        dep_t = [bw, *[0]*(nodes_count-1)]
+        dep_t[dep_num] = bw
+        all_arrays.append(np.array(dep_t))
+    L = np.full((nodes_count, nodes_count), 0)
+    B = np.asarray(all_arrays)
+    return B, L
+
+
+if __name__ == "__main__":
+    print(star(6, 1)[0])

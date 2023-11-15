@@ -6,7 +6,7 @@ from expes_topologies.on_coordination_logic import initialise_simulation, is_tim
 
 def execute(api: Node):
     """
-    Weaknesses:
+    Note:
     - Do not consume messages when executing tasks. Message can accumulate leading
       to mass responses after task is complete
     :param api:

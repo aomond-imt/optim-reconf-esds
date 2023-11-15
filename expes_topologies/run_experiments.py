@@ -9,12 +9,13 @@ from multiprocessing.pool import Pool
 import esds
 from execo_engine import ParamSweeper, sweep
 
-from topologies import clique, chain, ring
+from topologies import clique, chain, ring, star
 
 network_topologies = {
     "clique": clique,
     "chain": chain,
     "ring": ring,
+    "star": star
 }
 
 
@@ -27,6 +28,16 @@ use_cases_tasks_lists = {
                 [["provide_install_2", 6.24, []]],
                 [["provide_install_3", 4.52, []]],
                 [["provide_install_4", 13.13, []]],
+            ]
+        }
+    },
+    "default-star": {
+        "deploy": {
+            5: [
+                [["t_sa", 1.03, []], [f"t_sc", 7.20, [f"t_di_{dep_num}" for dep_num in range(5)]], [f"t_sr", 10.51, [f"t_dr_{dep_num}" for dep_num in range(5)]]],
+                *[[[f"t_di_{dep_num}", dep_times[0], []], [f"t_dr_{dep_num}", dep_times[1], []]] for dep_num, dep_times in enumerate(
+                    [(4.99, 16.69), (1.25, 1.52), (5.26, 2.29), (9.82, 2.41), (5.68, 1.40)]
+                )]
             ]
         }
     }
@@ -87,7 +98,7 @@ if __name__ == "__main__":
     else:
         root_results_dir = f"{os.environ['HOME']}/results-reconfiguration-esds/topologies/tests"
     parameter_list = {
-        "use_case": ["deploy-chain-5-default"],
+        "use_case": ["deploy-star-5-default"],
         "stress_conso": [1.358],
         "idle_conso": [1.339],
         "comms_conso": [0.16],
