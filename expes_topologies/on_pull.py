@@ -77,10 +77,7 @@ def execute(api: Node):
                 for dep in deps_to_retrieve:
                     api.sendt("eth0", ("req", dep), 257, 0, timeout=remaining_time(api, uptime_end))
 
-            # Treat incoming msgs
-            # if current_task is None and len(deps_to_retrieve) == 0:
-            #     timeout = remaining_time(api, uptime_end)
-            # else:
+            # Receive msgs and put them in buffer
             buf = []
             timeout = 0.05
             code, data = api.receivet("eth0", timeout=timeout)
@@ -90,6 +87,7 @@ def execute(api: Node):
                     buf.append((type_msg, dep))
                 code, data = api.receivet("eth0", timeout=0.05)
 
+            # Treat each received msg
             for data in buf:
                 type_msg, dep = data
                 api.log(f"Treat: {type_msg} {dep}")
@@ -99,11 +97,9 @@ def execute(api: Node):
                     elif dep not in deps_to_retrieve:
                         deps_to_retrieve.append(dep)
                 if type_msg == "res":
-                    # Non-interested nodes do not retrieve dep
                     if dep in deps_to_retrieve and dep not in deps_retrieved:
                         deps_retrieved.append(dep)
                         deps_to_retrieve.remove(dep)
-                # code, data = api.receivet("eth0", timeout=0.05)
 
             if not is_finished(s):
                 api.wait(min(0.5, remaining_time(api, uptime_end)))
