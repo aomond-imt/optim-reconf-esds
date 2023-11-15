@@ -85,7 +85,7 @@ def execute(api: Node):
                 type_msg, dep = data
                 if data not in buf:
                     buf.append((type_msg, dep))
-                code, data = api.receivet("eth0", timeout=0.05)
+                code, data = api.receivet("eth0", timeout=timeout)
 
             # Treat each received msg
             for data in buf:
@@ -101,8 +101,20 @@ def execute(api: Node):
                         deps_retrieved.append(dep)
                         deps_to_retrieve.remove(dep)
 
+                        # Execute task if deps are resolved
+                        if current_task is not None and all(dep in deps_retrieved for dep in current_task[2]):
+                            new_current_task, tot_reconf_duration = execute_reconf_task(
+                                api, idle_conso, current_task[0], node_cons, s, stress_conso, tasks_list,
+                                current_task[1],
+                                tot_reconf_duration
+                            )
+                            deps_retrieved.append(current_task[0])
+                            current_task = new_current_task
+                            if current_task is None:
+                                local_termination = c(api)
+
             if not is_finished(s):
-                api.wait(min(0.5, remaining_time(api, uptime_end)))
+                api.wait(min(1, remaining_time(api, uptime_end)))
 
         tot_uptimes += 1
         tot_uptimes_duration += c(api) - uptime
