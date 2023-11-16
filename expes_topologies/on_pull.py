@@ -35,8 +35,8 @@ def execute(api: Node):
         uptimes_schedule
     ) = initialise_simulation(api)
 
-    deps_to_retrieve = []
-    deps_retrieved = []
+    deps_to_retrieve = set(current_task[2]) if current_task is not None else set()
+    deps_retrieved = set()
     local_termination = 0
 
     # Duty-cycle simulation
@@ -55,65 +55,54 @@ def execute(api: Node):
 
         # Coordination loop
         while not is_time_up(api, uptime_end) and not is_finished(s):
-            # Append the deps to request
-            if current_task is not None and not all(dep in deps_retrieved for dep in current_task[2]):
-                for dep in current_task[2]:
-                    if dep not in deps_to_retrieve:
-                        deps_to_retrieve.append(dep)
+            if current_task is not None and set(current_task[2]).issubset(deps_retrieved):
+                # Execute task
+                api.log(f"Executing task {current_task[0]}")
+                node_cons.set_power(stress_conso)
+                api.wait(current_task[1])
+                tot_reconf_duration += current_task[1]
+                node_cons.set_power(idle_conso)
+                deps_retrieved.add(current_task[0])
+                current_task = tasks_list.pop(0) if len(tasks_list) > 0 else None
+                s.buf[api.node_id] = current_task is None
+                if current_task is not None:
+                    deps_to_retrieve.update(current_task[2])
 
-            # Execute task if deps are resolved
-            if current_task is not None and all(dep in deps_retrieved for dep in current_task[2]):
-                new_current_task, tot_reconf_duration = execute_reconf_task(
-                    api, idle_conso, current_task[0], node_cons, s, stress_conso, tasks_list, current_task[1],
-                    tot_reconf_duration
-                )
-                deps_retrieved.append(current_task[0])
-                current_task = new_current_task
+                # Save metrics
                 if current_task is None:
                     local_termination = c(api)
 
+                api.log(f"New task: {current_task}")
+                api.log(f"deps_to_retrieve: {deps_to_retrieve}")
+
             # Ask for missing deps
             if len(deps_to_retrieve) > 0:
-                # for dep in deps_to_retrieve:
                 api.sendt("eth0", ("req", deps_to_retrieve), 257, 0, timeout=remaining_time(api, uptime_end))
 
-            # Receive msgs and put them in buffer
+            # Receive msgs and put them in buffer (do not put duplicates in buf)
             buf = []
-            timeout = 0.05
+            timeout = 0.01
             code, data = api.receivet("eth0", timeout=timeout)
             while data is not None and not is_time_up(api, uptime_end) and not is_finished(s):
-                type_msg, dep = data
                 if data not in buf:
-                    buf.append((type_msg, dep))
+                    buf.append(data)
                 code, data = api.receivet("eth0", timeout=timeout)
 
             # Treat each received msg
             for data in buf:
                 type_msg, deps = data
-                api.log(f"Treat: {type_msg} {deps}")
                 if type_msg == "req":
-                    for dep in deps:
-                        if dep in deps_retrieved:
-                            api.sendt("eth0", ("res", dep), 257, 0, timeout=remaining_time(api, uptime_end))
-                        elif dep not in deps_to_retrieve:
-                            deps_to_retrieve.append(dep)
+                    deps_to_send = deps_retrieved.intersection(deps)
+                    if len(deps_to_send) > 0:
+                        api.log(f"Sending deps: {deps_to_send}")
+                        api.sendt("eth0", ("res", deps_to_send), 257, 0, timeout=remaining_time(api, uptime_end))
+                    deps_to_retrieve.update(deps.difference(deps_retrieved))
                 if type_msg == "res":
                     for dep in deps:
-                        if dep in deps_to_retrieve and dep not in deps_retrieved:
-                            deps_retrieved.append(dep)
+                        if dep in deps_to_retrieve:
+                            api.log(f"Retrieved deps: {dep}")
+                            deps_retrieved.add(dep)
                             deps_to_retrieve.remove(dep)
-
-                            # Execute task if deps are resolved
-                            if current_task is not None and all(dep in deps_retrieved for dep in current_task[2]):
-                                new_current_task, tot_reconf_duration = execute_reconf_task(
-                                    api, idle_conso, current_task[0], node_cons, s, stress_conso, tasks_list,
-                                    current_task[1],
-                                    tot_reconf_duration
-                                )
-                                deps_retrieved.append(current_task[0])
-                                current_task = new_current_task
-                                if current_task is None:
-                                    local_termination = c(api)
 
             if not is_finished(s):
                 api.wait(min(1, remaining_time(api, uptime_end)))

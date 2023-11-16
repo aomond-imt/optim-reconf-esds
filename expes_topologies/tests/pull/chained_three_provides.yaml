@@ -1,32 +1,32 @@
 tasks_list:
   0:
     - ["provide_install", 23.5, []]
-    - ["provide_config", 5.3, []]
-    - ["provide_run", 2.1, []]
+    - ["provide_config", 1, []]
+    - ["provide_run", 1, []]
   1:
     - ["use_install", 15.43, ["provide_install"]]
-    - ["use_config", 5.05, ["provide_config"]]
-    - ["use_run", 5.74, ["provide_run"]]
+    - ["use_config", 1, ["provide_config"]]
+    - ["use_run", 1, ["provide_run"]]
   2:
     - ["use_install", 15.43, ["provide_install"]]
-    - ["use_config", 5.05, ["provide_config"]]
-    - ["use_run", 5.74, ["provide_run"]]
+    - ["use_config", 1, ["provide_config"]]
+    - ["use_run", 1, ["provide_run"]]
 expected_result:
   0:
     global_termination_time: 700
-    local_termination_time: 130.90
+    local_termination_time: 125.50
     finished_reconf: true
-    tot_reconf_duration: 30.90
+    tot_reconf_duration: 25.5
     tot_uptimes_duration: 180
   1:
-    global_termination_time: 664.79
-    local_termination_time: 514.79
+    global_termination_time: 655
+    local_termination_time: 505
     finished_reconf: true
-    tot_reconf_duration: 26.22
-    tot_uptimes_duration: 203.43  # 3 * 60 + 7.43 + 3 + 13
+    tot_reconf_duration: 17.43
+    tot_uptimes_duration: 192.43
   2:
-    global_termination_time: 664.79
-    local_termination_time: 664.79
+    global_termination_time: 655
+    local_termination_time: 655
     finished_reconf: true
-    tot_reconf_duration: 26.22
-    tot_uptimes_duration: 250.43  # 4 * 60 + 7.43 + 3
+    tot_reconf_duration: 17.43
+    tot_uptimes_duration: 242.43

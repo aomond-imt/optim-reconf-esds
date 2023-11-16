@@ -80,21 +80,11 @@ def terminate_simulation(aggregated_send, api, comms_cons, comms_conso, current_
             "tot_sleeping_duration": tot_sleeping_duration,
         }, f)
     api.log("terminating")
-    # s.close()
-    # if api.node_id == 0:
-    #     s.unlink()
 
 
 def initialise_simulation(api):
     # Setup termination condition
-    nodes_count = api.args["nodes_count"]
-    # expe_name = Path(api.args["uptimes_schedule_name"]).stem
     s = api.args["s"]
-    # if api.node_id == 0:
-    #     s = shared_memory.SharedMemory(f"shm_cps_{expe_name}", create=True, size=nodes_count)
-    # else:
-    #     time.sleep(2)
-    #     s = shared_memory.SharedMemory(f"shm_cps_{expe_name}")
 
     # Energy calibration
     interface_name = "eth0"
@@ -118,6 +108,7 @@ def initialise_simulation(api):
     tasks_list = copy.deepcopy(api.args["tasks_list"][api.node_id])
     current_task = tasks_list.pop(0)  # Current task trying to be run
     results_dir = api.args["results_dir"]
+    nodes_count = api.args["nodes_count"]
 
     return aggregated_send, all_uptimes_schedules, comms_cons, comms_conso, current_task, idle_conso, node_cons, nodes_count, results_dir, retrieved_data, s, stress_conso, tasks_list, tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes, tot_uptimes_duration, uptimes_schedule
 

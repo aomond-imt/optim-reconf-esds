@@ -3,7 +3,7 @@ import subprocess, os
 import sys
 import traceback
 from contextlib import redirect_stdout
-from multiprocessing import Process, cpu_count
+from multiprocessing import Process, cpu_count, shared_memory
 from multiprocessing.pool import Pool
 
 import esds
@@ -74,13 +74,16 @@ def run_simulation(test_name, tasks_list, type_comms):
         "nodes_count": nodes_count,
         "uptimes_schedule_name": f"tests/{type_comms}/{test_name}.json",
         "tasks_list": tasks_list,
-        "neighbor_nodes": node_neighbors
+        "neighbor_nodes": node_neighbors,
+        "s": shared_memory.SharedMemory(f"shm_cps_{test_name}", create=True, size=nodes_count)
     }
     sys.path.append("..")
     for node_num in range(nodes_count):
         s.create_node(f"on_{type_comms}", interfaces=["eth0"], args=arguments)
 
     s.run(interferences=False)
+    arguments["s"].close()
+    arguments["s"].unlink()
 
 
 def verify_results(expected_result, test_name):
