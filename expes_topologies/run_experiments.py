@@ -10,7 +10,7 @@ import time
 import esds
 from execo_engine import ParamSweeper, sweep
 
-from topologies import clique, chain, ring, star
+from topologies import clique, chain, ring, star, deploy_tasks_list
 
 network_topologies = {
     "clique": clique,
@@ -19,35 +19,14 @@ network_topologies = {
     "star": star
 }
 
-
-use_cases_tasks_lists = {
-    "default-chain": {
-        "deploy": {
-            5: [
-                [["provide_install_0", 20.51, []]],
-                [["use_install", 11.12, ["provide_install_0", "provide_install_2", "provide_install_3", "provide_install_4"]]],
-                [["provide_install_2", 6.24, []]],
-                [["provide_install_3", 4.52, []]],
-                [["provide_install_4", 13.13, []]],
-            ]
-        }
-    },
-    "default-star": {
-        "deploy": {
-            6: [
-                [["t_sa", 1.03, []], [f"t_sc", 7.20, [f"t_di_{dep_num}" for dep_num in range(5)]], [f"t_sr", 10.51, [f"t_dr_{dep_num}" for dep_num in range(5)]]],
-                *[[[f"t_di_{dep_num}", dep_times[0], []], [f"t_dr_{dep_num}", dep_times[1], []]] for dep_num, dep_times in enumerate(
-                    [(4.99, 16.69), (1.25, 1.52), (5.26, 2.29), (9.82, 2.41), (5.68, 1.40)]
-                )]
-            ]
-        }
-    }
+coord_name_tasks_lists = {
+    "deploy": deploy_tasks_list
 }
 
 
 def run_simulation(parameters, root_results_dir):
     try:
-        coordination_name, network_topology, nodes_count, services_topology = parameters["use_case"].split("-")
+        coordination_name, network_topology, nodes_count = parameters["use_case"].split("-")
         nodes_count = int(nodes_count)
         B, L = network_topologies[network_topology](nodes_count, parameters["bandwidth"])
         smltr = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
@@ -60,10 +39,8 @@ def run_simulation(parameters, root_results_dir):
             "bandwidth": parameters["bandwidth"],
             "results_dir": expe_results_dir,
             "nodes_count": nodes_count,
-            # "uptimes_schedule_name": f"tests/pull/chained_aggregator_use.json",
-            # "id_run": f"tests/pull/chained_aggregator_use.json",
             "uptimes_schedule_name": f"uptimes_schedules/{parameters['id_run']}-{parameters['uptime_duration']}.json",
-            "tasks_list": use_cases_tasks_lists[f"{services_topology}-{network_topology}"][coordination_name][nodes_count],
+            "tasks_list": coord_name_tasks_lists[coordination_name],
             "s": shared_memory.SharedMemory(f"shm_cps_{parameters['id_run']}-{parameters['uptime_duration']}-{t}", create=True, size=nodes_count)
         }
         sys.path.append("..")
@@ -104,7 +81,7 @@ if __name__ == "__main__":
     else:
         root_results_dir = f"{os.environ['HOME']}/results-reconfiguration-esds/topologies/tests"
     parameter_list = {
-        "use_case": ["deploy-star-6-default"],
+        "use_case": ["deploy-star-6"],
         "stress_conso": [1.358],
         "idle_conso": [1.339],
         "comms_conso": [0.16],
