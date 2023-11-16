@@ -8,7 +8,6 @@ from multiprocessing.pool import Pool
 import time
 
 import esds
-from esds.node import Node
 from execo_engine import ParamSweeper, sweep
 
 from topologies import clique, chain, ring, star
@@ -51,7 +50,6 @@ def run_simulation(parameters, root_results_dir):
         coordination_name, network_topology, nodes_count, services_topology = parameters["use_case"].split("-")
         nodes_count = int(nodes_count)
         B, L = network_topologies[network_topology](nodes_count, parameters["bandwidth"])
-        Node.available_node_id = 0  # TODO: notify Loic about it
         smltr = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
         expe_results_dir = f"{root_results_dir}/{parameters['use_case']}-{parameters['uptime_duration']}/{parameters['id_run']}"
         t = int(time.time()*1000)
