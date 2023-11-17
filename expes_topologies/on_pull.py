@@ -58,20 +58,25 @@ def execute(api: Node):
 
         # Coordination loop
         while not is_time_up(api, uptime_end) and not is_finished(s):
-            tasks_done = []
             if current_concurrent_tasks is not None:
-                for task_name, task_time, task_dep in current_concurrent_tasks:
+                tasks_to_do = []
+                for task in current_concurrent_tasks:
+                    _, _, task_dep = task
                     if task_dep in deps_retrieved:
-                        # Execute task
-                        api.log(f"Executing task {task_name}")
-                        node_cons.set_power(stress_conso)
-                        api.wait(task_time)
-                        tot_reconf_duration += task_time
-                        node_cons.set_power(idle_conso)
-                        deps_retrieved.add(task_name)
-                        tasks_done.append([task_name, task_time, task_dep])
+                        tasks_to_do.append(task)
 
-                for task in tasks_done:
+                if len(tasks_to_do) > 0:
+                    # Execute tasks
+                    max_task_time = max(task_time for _, task_time, _ in tasks_to_do)
+                    api.log(f"Executing concurrent tasks {tasks_to_do}")
+                    node_cons.set_power(stress_conso)
+                    api.wait(max_task_time)
+                    tot_reconf_duration += max_task_time
+                    node_cons.set_power(idle_conso)
+                    for task_name, _, _ in tasks_to_do:
+                        deps_retrieved.add(task_name)
+
+                for task in tasks_to_do:
                     current_concurrent_tasks.remove(task)
 
                 if len(current_concurrent_tasks) == 0:
