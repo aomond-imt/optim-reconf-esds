@@ -106,25 +106,9 @@ def initialise_simulation(api):
     uptimes_schedule = all_uptimes_schedules[api.node_id]  # Node uptime schedule
     retrieved_data = []  # All data retrieved from neighbors
     tasks_list = copy.deepcopy(api.args["tasks_list"][api.node_id])
-    current_task = tasks_list.pop(0)  # Current task trying to be run
+    current_concurrent_tasks = tasks_list.pop(0)  # Current task trying to be run
     results_dir = api.args["results_dir"]
     nodes_count = api.args["nodes_count"]
 
-    return aggregated_send, all_uptimes_schedules, comms_cons, comms_conso, current_task, idle_conso, node_cons, nodes_count, results_dir, retrieved_data, s, stress_conso, tasks_list, tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes, tot_uptimes_duration, uptimes_schedule
+    return aggregated_send, all_uptimes_schedules, comms_cons, comms_conso, current_concurrent_tasks, idle_conso, node_cons, nodes_count, results_dir, retrieved_data, s, stress_conso, tasks_list, tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes, tot_uptimes_duration, uptimes_schedule
 
-
-def execute_reconf_task(api, idle_conso, name, node_cons, s, stress_conso, tasks_list,
-                        time_task, tot_reconf_duration):
-    api.log(f"Executing task {name}")
-    node_cons.set_power(stress_conso)
-    api.wait(time_task)
-    tot_reconf_duration += time_task
-    node_cons.set_power(idle_conso)
-    if len(tasks_list) > 0:
-        api.log("Getting next task")
-        current_task = tasks_list.pop(0)
-    else:
-        api.log("All tasks done")
-        current_task = None
-        s.buf[api.node_id] = 1
-    return current_task, tot_reconf_duration

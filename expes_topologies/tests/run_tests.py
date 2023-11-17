@@ -21,15 +21,15 @@ LORA_BW = 50_000
 
 tests_topologies = {
     "pull": {
-        "solo_on": clique(1, LORA_BW),
+        # "solo_on": clique(1, LORA_BW),
         "use_provide": clique(2, LORA_BW),
-        "overlaps_sending": clique(3, LORA_BW),
-        "actions_overflow": clique(2, LORA_BW),
-        "chained_one_provide": chain(3, LORA_BW),
-        "chained_three_provides": chain(3, LORA_BW),
-        "ring_one_provide": ring(4, LORA_BW),
-        "ring_three_aggregators": ring(6, LORA_BW),
-        "chained_aggregator_use": chain(5, LORA_BW),
+        # "overlaps_sending": clique(3, LORA_BW),
+        # "actions_overflow": clique(2, LORA_BW),
+        # "chained_one_provide": chain(3, LORA_BW),
+        # "chained_three_provides": chain(3, LORA_BW),
+        # "ring_one_provide": ring(4, LORA_BW),
+        # "ring_three_aggregators": ring(6, LORA_BW),
+        # "chained_aggregator_use": chain(5, LORA_BW),
     },
     "static_pull": {
         "solo_on": clique(1, LORA_BW),

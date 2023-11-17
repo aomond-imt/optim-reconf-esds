@@ -1,7 +1,7 @@
 from esds.node import Node
 
 from expes_topologies.on_coordination_logic import initialise_simulation, is_time_up, is_isolated_uptime, remaining_time, \
-    FREQ_POLLING, terminate_simulation, c, execute_reconf_task, is_finished
+    FREQ_POLLING, terminate_simulation, c, is_finished
 
 
 def execute(api: Node):
@@ -17,7 +17,7 @@ def execute(api: Node):
         all_uptimes_schedules,
         comms_cons,
         comms_conso,
-        current_task,
+        current_concurrent_tasks,
         idle_conso,
         node_cons,
         nodes_count,
@@ -35,8 +35,11 @@ def execute(api: Node):
         uptimes_schedule
     ) = initialise_simulation(api)
 
-    deps_to_retrieve = set(current_task[2]) if current_task is not None else set()
-    deps_retrieved = set()
+    deps_to_retrieve = set()
+    for _, _, task_dep in current_concurrent_tasks:
+        deps_to_retrieve.add(task_dep)
+
+    deps_retrieved = {None}
     local_termination = 0
 
     # Duty-cycle simulation
@@ -55,25 +58,37 @@ def execute(api: Node):
 
         # Coordination loop
         while not is_time_up(api, uptime_end) and not is_finished(s):
-            if current_task is not None and set(current_task[2]).issubset(deps_retrieved):
-                # Execute task
-                api.log(f"Executing task {current_task[0]}")
-                node_cons.set_power(stress_conso)
-                api.wait(current_task[1])
-                tot_reconf_duration += current_task[1]
-                node_cons.set_power(idle_conso)
-                deps_retrieved.add(current_task[0])
-                current_task = tasks_list.pop(0) if len(tasks_list) > 0 else None
-                s.buf[api.node_id] = current_task is None
-                if current_task is not None:
-                    deps_to_retrieve.update(current_task[2])
+            tasks_done = []
+            if current_concurrent_tasks is not None:
+                for task_name, task_time, task_dep in current_concurrent_tasks:
+                    if task_dep in deps_retrieved:
+                        # Execute task
+                        api.log(f"Executing task {task_name}")
+                        node_cons.set_power(stress_conso)
+                        api.wait(task_time)
+                        tot_reconf_duration += task_time
+                        node_cons.set_power(idle_conso)
+                        deps_retrieved.add(task_name)
+                        tasks_done.append([task_name, task_time, task_dep])
 
-                # Save metrics
-                if current_task is None:
-                    local_termination = c(api)
+                for task in tasks_done:
+                    current_concurrent_tasks.remove(task)
 
-                api.log(f"New task: {current_task}")
-                api.log(f"deps_to_retrieve: {deps_to_retrieve}")
+                if len(current_concurrent_tasks) == 0:
+                    current_concurrent_tasks = tasks_list.pop(0) if len(tasks_list) > 0 else None
+                    s.buf[api.node_id] = current_concurrent_tasks is None
+                    if current_concurrent_tasks is not None:
+                        for _, _, task_dep in current_concurrent_tasks:
+                            deps_to_retrieve.add(task_dep)
+
+                    # Save metrics
+                    if current_concurrent_tasks is None:
+                        local_termination = c(api)
+                        api.log("All tasks done")
+                    else:
+                        api.log(f"New concurrent tasks: {current_concurrent_tasks}")
+                        api.log(f"deps_to_retrieve: {deps_to_retrieve}")
+
 
             # Ask for missing deps
             if len(deps_to_retrieve) > 0:
@@ -84,6 +99,7 @@ def execute(api: Node):
             timeout = 0.01
             code, data = api.receivet("eth0", timeout=timeout)
             while data is not None and not is_time_up(api, uptime_end) and not is_finished(s):
+                api.log(f"Log: received {data}")
                 if data not in buf:
                     buf.append(data)
                 code, data = api.receivet("eth0", timeout=timeout)
@@ -114,6 +130,6 @@ def execute(api: Node):
             api.log("All nodes finished, terminating")
             break
 
-    terminate_simulation(aggregated_send, api, comms_cons, comms_conso, current_task, node_cons, results_dir, s,
+    terminate_simulation(aggregated_send, api, comms_cons, comms_conso, current_concurrent_tasks, node_cons, results_dir, s,
                          tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes,
                          tot_uptimes_duration, local_termination)

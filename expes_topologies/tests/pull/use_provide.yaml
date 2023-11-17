@@ -1,8 +1,8 @@
 tasks_list:
   0:
-    - ["provide_install", 15, []]
+    - [["provide_install", 15, null]]
   1:
-    - ["use_install", 5, ["provide_install"]]
+    - [["use_install", 5, "provide_install"]]
 expected_result:
   0:
     global_termination_time: 57
