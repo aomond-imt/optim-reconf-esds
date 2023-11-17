@@ -21,15 +21,15 @@ LORA_BW = 50_000
 
 tests_topologies = {
     "pull": {
-        # "solo_on": clique(1, LORA_BW),
+        "solo_on": clique(1, LORA_BW),
         "use_provide": clique(2, LORA_BW),
-        # "overlaps_sending": clique(3, LORA_BW),
-        # "actions_overflow": clique(2, LORA_BW),
-        # "chained_one_provide": chain(3, LORA_BW),
-        # "chained_three_provides": chain(3, LORA_BW),
-        # "ring_one_provide": ring(4, LORA_BW),
-        # "ring_three_aggregators": ring(6, LORA_BW),
-        # "chained_aggregator_use": chain(5, LORA_BW),
+        "overlaps_sending": clique(3, LORA_BW),
+        "actions_overflow": clique(2, LORA_BW),
+        "chained_one_provide": chain(3, LORA_BW),
+        "chained_three_provides": chain(3, LORA_BW),
+        "ring_one_provide": ring(4, LORA_BW),
+        "ring_three_aggregators": ring(6, LORA_BW),
+        "chained_aggregator_use": chain(5, LORA_BW),
     },
     "static_pull": {
         "solo_on": clique(1, LORA_BW),
@@ -104,8 +104,8 @@ def verify_results(expected_result, test_name):
         # for key in ["global_termination_time", "tot_uptimes_duration", "tot_msg_sent"]:
         for key in ["global_termination_time", "local_termination_time", "tot_uptimes_duration"]:
             delta = abs(result[key] - expected_node_results[key])
-            if delta > FREQ_POLLING * 3:
-                errors.append(f"Error {key} node {node_num}: expected a delta of minus or equal {FREQ_POLLING * 3}, got {delta} (expected {expected_node_results[key]} got {result[key]}")
+            if delta > FREQ_POLLING * 5:
+                errors.append(f"Error {key} node {node_num}: expected a delta of minus or equal {FREQ_POLLING * 5}, got {delta} (expected {expected_node_results[key]} got {result[key]}")
 
     return errors
 

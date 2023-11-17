@@ -1,16 +1,16 @@
 tasks_list:
   0:
-    - ["provide_install_0", 2.51, []]
+    - [["provide_install_0", 2.51, null]]
   1:
-    - ["use_install_4", 5.22, ["provide_install_4"]]
+    - [["use_install_4", 5.22, "provide_install_4"]]
   2:
-    - ["provide_install_2", 4.21, []]
+    - [["provide_install_2", 4.21, null]]
   3:
-    - ["use_install_0", 2.22, ["provide_install_0"]]
+    - [["use_install_0", 2.22, "provide_install_0"]]
   4:
-    - ["provide_install_4", 4.51, []]
+    - [["provide_install_4", 4.51, null]]
   5:
-    - ["use_install_2", 3.22, ["provide_install_2"]]
+    - [["use_install_2", 3.22, "provide_install_2"]]
 expected_result:
   0:
     global_termination_time: 860
