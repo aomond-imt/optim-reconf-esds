@@ -40,7 +40,7 @@ def run_simulation(parameters, root_results_dir):
             "results_dir": expe_results_dir,
             "nodes_count": nodes_count,
             "uptimes_schedule_name": f"uptimes_schedules/{parameters['id_run']}-{parameters['uptime_duration']}.json",
-            "tasks_list": coord_name_tasks_lists[coordination_name],
+            "tasks_list": coord_name_tasks_lists[coordination_name](nodes_count - 1),
             "s": shared_memory.SharedMemory(f"shm_cps_{parameters['id_run']}-{parameters['uptime_duration']}-{t}", create=True, size=nodes_count)
         }
         sys.path.append("..")

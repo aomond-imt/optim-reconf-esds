@@ -94,9 +94,8 @@ def execute(api: Node):
                         api.log(f"New concurrent tasks: {current_concurrent_tasks}")
                         api.log(f"deps_to_retrieve: {deps_to_retrieve}")
 
-
             # Ask for missing deps
-            if len(deps_to_retrieve) > 0:
+            if len(deps_to_retrieve) > 0 and not is_time_up(api, uptime_end):
                 api.sendt("eth0", ("req", deps_to_retrieve), 257, 0, timeout=remaining_time(api, uptime_end))
 
             # Receive msgs and put them in buffer (do not put duplicates in buf)

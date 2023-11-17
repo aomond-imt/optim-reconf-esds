@@ -1,0 +1,38 @@
+expected_result:
+  0:
+    global_termination_time: 410.51
+    local_termination_time: 410.51
+    finished_reconf: true
+    tot_reconf_duration: 27.65  # 1.03 + 6.35 + 2.56 + 7.2 (max(5.94, 6.33, 7.2)) + 10.51
+    tot_uptimes_duration: 130.51
+  1:
+    global_termination_time: 410.51
+    local_termination_time: 61.68
+    finished_reconf: true
+    tot_reconf_duration: 21.68
+    tot_uptimes_duration: 130.51
+  2:
+    global_termination_time: 500
+    local_termination_time: 82.77
+    finished_reconf: true
+    tot_reconf_duration: 2.77
+    tot_uptimes_duration: 120
+  3:
+    global_termination_time: 500
+    local_termination_time: 87.55
+    finished_reconf: true
+    tot_reconf_duration: 7.55
+    tot_uptimes_duration: 120
+  4:
+    global_termination_time: 500
+    local_termination_time: 63.23
+    finished_reconf: true
+    tot_reconf_duration: 12.23
+    tot_uptimes_duration: 120
+  5:
+    global_termination_time: 500
+    local_termination_time: 87.08
+    finished_reconf: true
+    tot_reconf_duration: 7.08
+    tot_uptimes_duration: 120
+
