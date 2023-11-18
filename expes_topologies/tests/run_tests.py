@@ -119,25 +119,6 @@ def main():
 
     for k in all_p:
         k.join()
-    # nb_cores = math.ceil(cpu_count() * 0.5)
-    # pool = Pool(nb_cores)
-    # for test_name in tests_topologies[type_comms].keys():
-    #     exec_esds = pool.apply_async(
-    #         run_test,
-    #         args=(test_name,type_comms)
-    #     )
-    #     all_p.append(exec_esds)
-    #
-    # for running_exec in all_p:
-    #     try:
-    #         running_exec.get()
-    #     except subprocess.CalledProcessError as err:
-    #         print("failed :(")
-    #         print("------------- Test has a non-zero exit code -------------")
-    #         print(err.output, end="")
-    #     except Exception as err:
-    #         print("failed :(")
-    #         traceback.print_exc()
 
 
 if __name__ == "__main__":
