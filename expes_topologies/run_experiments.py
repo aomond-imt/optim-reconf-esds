@@ -26,6 +26,10 @@ from topologies import clique, chain, ring, star, deploy_tasks_list_agg_0, deplo
 tasks_list_tplgy = {
     "deploy-star-fav": (deploy_tasks_list_agg_0, star),
     "deploy-star-nonfav": (deploy_tasks_list_agg_middle, star),
+    "deploy-ring-fav": (deploy_tasks_list_agg_0, ring),
+    "deploy-chain-fav": (deploy_tasks_list_agg_middle, chain),
+    "deploy-chain-nonfav": (deploy_tasks_list_agg_0, chain),
+    "deploy-clique-fav": (deploy_tasks_list_agg_0, clique),
 }
 
 
@@ -115,13 +119,13 @@ def main(test_expe):
 if __name__ == "__main__":
     test_expe = False
     parameter_list = {
-        "use_case": ["deploy-star-fav", "deploy-star-nonfav"],
+        "use_case": ["deploy-star-fav", "deploy-star-nonfav", "deploy-ring-fav", "deploy-chain-fav", "deploy-chain-nonfav", "deploy-clique-fav"],
         "nodes_count": [6, 16, 31],
         "stress_conso": [1.358],
         "idle_conso": [1.339],
         "comms_conso": [0.16],
         "bandwidth": [50_000],
-        "id_run": [0, 1, 2],
+        "id_run": [0, 1, 2, 3, 4],
         "uptime_duration": [60]
     }
     sweeps = sweep(parameter_list)
