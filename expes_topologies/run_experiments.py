@@ -14,23 +14,24 @@ import yaml
 from execo_engine import ParamSweeper, sweep
 
 import shared_methods
-from topologies import clique, chain, ring, star, deploy_tasks_list
+from topologies import clique, chain, ring, star, deploy_tasks_list_agg_0, deploy_tasks_list_agg_middle
 
-network_topologies = {
-    "clique": clique,
-    "chain": chain,
-    "ring": ring,
-    "star": star
-}
+# network_topologies = {
+#     "clique": clique,
+#     "chain": chain,
+#     "ring": ring,
+#     "star": star
+# }
 
-coord_name_tasks_lists = {
-    "deploy": deploy_tasks_list
+tasks_list_tplgy = {
+    "deploy-star-fav": (deploy_tasks_list_agg_0, star),
+    "deploy-star-nonfav": (deploy_tasks_list_agg_middle, star),
 }
 
 
 def run_simulation(parameters, test_expe):
     root_results_dir = f"{os.environ['HOME']}/results-reconfiguration-esds/topologies/{['paper', 'tests'][test_expe]}"
-    results_dir = f"{parameters['use_case']}-{parameters['uptime_duration']}/{parameters['id_run']}"
+    results_dir = f"{parameters['use_case']}-{parameters['nodes_count']}-{parameters['uptime_duration']}/{parameters['id_run']}"
     expe_results_dir = f"{root_results_dir}/{results_dir}"
     tmp_results_dir = f"/tmp/{results_dir}"
     os.makedirs(expe_results_dir, exist_ok=True)
@@ -39,9 +40,10 @@ def run_simulation(parameters, test_expe):
 
     try:
         # Setup parameters
-        coordination_name, nodes_count, network_topology = parameters["use_case"].split("-")
-        nodes_count = int(nodes_count)
-        B, L = network_topologies[network_topology](nodes_count, parameters["bandwidth"])
+        coordination_name, network_topology, _ = parameters["use_case"].split("-")
+        nodes_count = int(parameters["nodes_count"])
+        tasks_list, tplgy = tasks_list_tplgy[parameters["use-case"]]
+        B, L = tplgy(nodes_count, parameters["bandwidth"])
         smltr = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
         t = int(time.time()*1000)
 
@@ -49,7 +51,7 @@ def run_simulation(parameters, test_expe):
         if not test_expe:
             uptimes_schedule_name = f"{current_dir_name}/uptimes_schedules/{parameters['id_run']}-{parameters['uptime_duration']}.json"
         else:
-            uptimes_schedule_name = f"{current_dir_name}/expe_tests/{parameters['use_case']}.json"
+            uptimes_schedule_name = f"{current_dir_name}/expe_tests/{parameters['use_case']}-{nodes_count}.json"
             if not exists(uptimes_schedule_name):
                 print(f"No test found for {parameters['use_case']}")
 
@@ -61,7 +63,7 @@ def run_simulation(parameters, test_expe):
             "results_dir": expe_results_dir,
             "nodes_count": nodes_count,
             "uptimes_schedule_name": uptimes_schedule_name,
-            "tasks_list": coord_name_tasks_lists[coordination_name](nodes_count - 1),
+            "tasks_list": tasks_list(nodes_count - 1),
             "s": shared_memory.SharedMemory(f"shm_cps_{parameters['id_run']}-{parameters['uptime_duration']}-{t}", create=True, size=nodes_count)
         }
         sys.path.append("..")
@@ -77,10 +79,9 @@ def run_simulation(parameters, test_expe):
 
         # If test, verification
         if test_expe:
-            with open(f"{current_dir_name}/expe_tests/{parameters['use_case']}.yaml") as f:
+            with open(f"{current_dir_name}/expe_tests/{parameters['use_case']}-{nodes_count}.yaml") as f:
                 expected_results = yaml.safe_load(f)["expected_result"]
             shared_methods.verify_results(expected_results, expe_results_dir)
-
         print(f"{results_dir}: done")
 
         # Go to next parameter
@@ -112,14 +113,15 @@ def main(test_expe):
 
 
 if __name__ == "__main__":
-    test_expe = True
+    test_expe = False
     parameter_list = {
-        "use_case": ["deploy-6-star"],
+        "use_case": ["deploy-star-fav", "deploy-star-nonfav"],
+        "nodes_count": [6, 16, 31],
         "stress_conso": [1.358],
         "idle_conso": [1.339],
         "comms_conso": [0.16],
         "bandwidth": [50_000],
-        "id_run": [0, 1, 2, 3, 4, 5],
+        "id_run": [0, 1, 2],
         "uptime_duration": [60]
     }
     sweeps = sweep(parameter_list)
