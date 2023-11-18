@@ -64,7 +64,7 @@ def deploy_tasks_list(nb_msrmt):
         t_di, t_dr = dep_times
         msrmts.append([[[f"t_di_{dep_num}", t_di, None]], [[f"t_dr_{dep_num}", t_dr, None]]])
 
-    return aggtor, [msrmts]
+    return aggtor, msrmts
 
 
 def deploy_tasks_list_agg_0(nb_msrmt):

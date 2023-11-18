@@ -42,7 +42,7 @@ def run_simulation(parameters, test_expe):
         # Setup parameters
         coordination_name, network_topology, _ = parameters["use_case"].split("-")
         nodes_count = int(parameters["nodes_count"])
-        tasks_list, tplgy = tasks_list_tplgy[parameters["use-case"]]
+        tasks_list, tplgy = tasks_list_tplgy[parameters["use_case"]]
         B, L = tplgy(nodes_count, parameters["bandwidth"])
         smltr = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
         t = int(time.time()*1000)
