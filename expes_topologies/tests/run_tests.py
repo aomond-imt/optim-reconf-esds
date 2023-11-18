@@ -11,7 +11,7 @@ import numpy as np
 import yaml
 from icecream import ic
 
-from topologies import clique, chain, ring, star, deploy_tasks_list
+from topologies import clique, chain, ring, star
 
 env_with_pythonpath = os.environ.copy()
 env_with_pythonpath["PYTHONPATH"] = env_with_pythonpath["PYTHONPATH"] + ":" + os.path.dirname(os.path.realpath(__file__))
@@ -30,8 +30,7 @@ tests_topologies = {
         "ring_one_provide": ring(4, LORA_BW),
         "ring_three_aggregators": ring(6, LORA_BW),
         "chained_aggregator_use": chain(5, LORA_BW),
-        "concurrent_tasks": clique(4, LORA_BW),
-        "deploy_6_star": star(6, LORA_BW)
+        "concurrent_tasks": clique(4, LORA_BW)
     },
     "static_pull": {
         "solo_on": clique(1, LORA_BW),
@@ -66,7 +65,7 @@ def run_simulation(test_name, tasks_list, type_comms):
     B, L = tests_topologies[type_comms][test_name]
     s = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
     node_neighbors = compute_neighborhood(B)
-    nodes_count = len(tasks_list)
+    nodes_count = len(tasks_list.keys())
     arguments = {
         "stress_conso": 1.358,
         "idle_conso": 1.339,
@@ -116,12 +115,7 @@ def run_test(test_name, type_comms):
     with open(f"tests/{type_comms}/{test_name}.yaml") as f:
         test_args = yaml.safe_load(f)
 
-    expected_result = test_args["expected_result"]
-    if "deploy" in test_name:
-        _, nodes_count, _ = test_name.split("_")
-        tasks_list = deploy_tasks_list(int(nodes_count) - 1)
-    else:
-        tasks_list = test_args["tasks_list"]
+    tasks_list, expected_result = test_args["tasks_list"], test_args["expected_result"]
 
     # Launch and log experiment
     os.makedirs(f"/tmp/{test_name}", exist_ok=True)

@@ -26,7 +26,8 @@ coord_name_tasks_lists = {
 
 def run_simulation(parameters, root_results_dir):
     try:
-        coordination_name, network_topology, nodes_count = parameters["use_case"].split("-")
+        # Setup parameters
+        coordination_name, nodes_count, network_topology = parameters["use_case"].split("-")
         nodes_count = int(nodes_count)
         B, L = network_topologies[network_topology](nodes_count, parameters["bandwidth"])
         smltr = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
@@ -45,15 +46,19 @@ def run_simulation(parameters, root_results_dir):
         }
         sys.path.append("..")
         os.makedirs(expe_results_dir, exist_ok=True)
+        os.makedirs(f"/tmp/{parameters['use_case']}/{parameters['id_run']}-{parameters['uptime_duration']}", exist_ok=True)
+
+        # Setup and launch simulation
         for node_num in range(nodes_count):
             smltr.create_node("on_pull", interfaces=["eth0"], args=node_arguments)
-        os.makedirs(f"/tmp/{parameters['use_case']}/{parameters['id_run']}-{parameters['uptime_duration']}", exist_ok=True)
         with open(f"/tmp/{parameters['use_case']}/{parameters['id_run']}-{parameters['uptime_duration']}/debug.txt", "w") as f:
             with redirect_stdout(f):
                 smltr.run(interferences=False)
         print(f"{parameters['use_case']}: done")
         node_arguments["s"].close()
         node_arguments["s"].unlink()
+
+        # Go to next parameter
         sweeper.done(parameters)
     except Exception as exc:
         traceback.print_exc()
@@ -81,13 +86,13 @@ if __name__ == "__main__":
     else:
         root_results_dir = f"{os.environ['HOME']}/results-reconfiguration-esds/topologies/tests"
     parameter_list = {
-        "use_case": ["deploy-star-6"],
+        "use_case": ["deploy-6-star"],
         "stress_conso": [1.358],
         "idle_conso": [1.339],
         "comms_conso": [0.16],
-        "bandwidth": [6250],
+        "bandwidth": [50_000],
         "id_run": [0, 1, 2, 3, 4, 5],
-        "uptime_duration": [60, 120, 180]
+        "uptime_duration": [60]
     }
     sweeps = sweep(parameter_list)
 
