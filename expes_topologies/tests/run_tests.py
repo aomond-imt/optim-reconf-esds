@@ -13,6 +13,8 @@ from icecream import ic
 
 from topologies import clique, chain, ring, star
 
+from expes_topologies.shared_methods import verify_results
+
 env_with_pythonpath = os.environ.copy()
 env_with_pythonpath["PYTHONPATH"] = env_with_pythonpath["PYTHONPATH"] + ":" + os.path.dirname(os.path.realpath(__file__))
 FREQ_POLLING = 1
@@ -87,30 +89,6 @@ def run_simulation(test_name, tasks_list, type_comms):
     arguments["s"].unlink()
 
 
-def verify_results(expected_result, test_name):
-    errors = []
-    # Check result for each node
-    for node_num, expected_node_results in expected_result.items():
-        # Load node results
-        with open(f"/tmp/{test_name}/{node_num}.yaml") as f:
-            result = yaml.safe_load(f)
-
-        # Check exact results
-        # for key in ["finished_reconf", "tot_aggregated_send", "tot_reconf_duration"]:
-        for key in ["finished_reconf", "tot_reconf_duration"]:
-            if round(result[key], 2) != round(expected_node_results[key], 2):
-                errors.append(f"Error {key} node {node_num}: expected {expected_node_results[key]} got {result[key]}")
-
-        # Results with approximation tolerance
-        # for key in ["global_termination_time", "tot_uptimes_duration", "tot_msg_sent"]:
-        for key in ["global_termination_time", "local_termination_time", "tot_uptimes_duration"]:
-            delta = abs(result[key] - expected_node_results[key])
-            if delta > FREQ_POLLING * 5:
-                errors.append(f"Error {key} node {node_num}: expected a delta of minus or equal {FREQ_POLLING * 5}, got {delta} (expected {expected_node_results[key]} got {result[key]}")
-
-    return errors
-
-
 def run_test(test_name, type_comms):
     with open(f"tests/{type_comms}/{test_name}.yaml") as f:
         test_args = yaml.safe_load(f)
@@ -123,7 +101,8 @@ def run_test(test_name, type_comms):
         with redirect_stdout(f):
             run_simulation(test_name, tasks_list, type_comms)
 
-    errors = verify_results(expected_result, test_name)
+    test_dir = f"/tmp/{test_name}"
+    errors = verify_results(expected_result, test_dir)
     if len(errors) == 0:
         print(f"{test_name}: ok")
     else:

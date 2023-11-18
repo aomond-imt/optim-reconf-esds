@@ -112,3 +112,26 @@ def initialise_simulation(api):
 
     return aggregated_send, all_uptimes_schedules, comms_cons, comms_conso, current_concurrent_tasks, idle_conso, node_cons, nodes_count, results_dir, retrieved_data, s, stress_conso, tasks_list, tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes, tot_uptimes_duration, uptimes_schedule
 
+
+def verify_results(expected_result, test_dir):
+    errors = []
+    # Check result for each node
+    for node_num, expected_node_results in expected_result.items():
+        # Load node results
+        with open(f"{test_dir}/{node_num}.yaml") as f:
+            result = yaml.safe_load(f)
+
+        # Check exact results
+        # for key in ["finished_reconf", "tot_aggregated_send", "tot_reconf_duration"]:
+        for key in ["finished_reconf", "tot_reconf_duration"]:
+            if round(result[key], 2) != round(expected_node_results[key], 2):
+                errors.append(f"Error {key} node {node_num}: expected {expected_node_results[key]} got {result[key]}")
+
+        # Results with approximation tolerance
+        # for key in ["global_termination_time", "tot_uptimes_duration", "tot_msg_sent"]:
+        for key in ["global_termination_time", "local_termination_time", "tot_uptimes_duration"]:
+            delta = abs(result[key] - expected_node_results[key])
+            if delta > FREQ_POLLING * 5:
+                errors.append(f"Error {key} node {node_num}: expected a delta of minus or equal {FREQ_POLLING * 5}, got {delta} (expected {expected_node_results[key]} got {result[key]}")
+
+    return errors

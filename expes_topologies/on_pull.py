@@ -1,6 +1,6 @@
 from esds.node import Node
 
-from expes_topologies.on_coordination_logic import initialise_simulation, is_time_up, is_isolated_uptime, remaining_time, \
+from expes_topologies.shared_methods import initialise_simulation, is_time_up, is_isolated_uptime, remaining_time, \
     FREQ_POLLING, terminate_simulation, c, is_finished
 
 

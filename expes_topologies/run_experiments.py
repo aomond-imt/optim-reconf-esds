@@ -6,10 +6,14 @@ from contextlib import redirect_stdout
 from multiprocessing import cpu_count, shared_memory
 from multiprocessing.pool import Pool
 import time
+from os.path import exists
 
 import esds
+import yaml
 from execo_engine import ParamSweeper, sweep
+from icecream import ic
 
+import shared_methods
 from topologies import clique, chain, ring, star, deploy_tasks_list
 
 network_topologies = {
@@ -24,15 +28,25 @@ coord_name_tasks_lists = {
 }
 
 
-def run_simulation(parameters, root_results_dir):
+def run_simulation(parameters, test_expe):
     try:
         # Setup parameters
         coordination_name, nodes_count, network_topology = parameters["use_case"].split("-")
         nodes_count = int(nodes_count)
         B, L = network_topologies[network_topology](nodes_count, parameters["bandwidth"])
         smltr = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
+        root_results_dir = f"{os.environ['HOME']}/results-reconfiguration-esds/topologies/{['paper', 'tests'][test_expe]}"
         expe_results_dir = f"{root_results_dir}/{parameters['use_case']}-{parameters['uptime_duration']}/{parameters['id_run']}"
         t = int(time.time()*1000)
+
+        current_dir_name = os.path.dirname(os.path.abspath(__file__))
+        if not test_expe:
+            uptimes_schedule_name = f"{current_dir_name}/uptimes_schedules/{parameters['id_run']}-{parameters['uptime_duration']}.json"
+        else:
+            uptimes_schedule_name = f"{current_dir_name}/expe_tests/{parameters['use_case']}.json"
+            if not exists(uptimes_schedule_name):
+                print(f"No test found for {parameters['use_case']}")
+
         node_arguments = {
             "stress_conso": parameters["stress_conso"],
             "idle_conso": parameters["idle_conso"],
@@ -40,7 +54,7 @@ def run_simulation(parameters, root_results_dir):
             "bandwidth": parameters["bandwidth"],
             "results_dir": expe_results_dir,
             "nodes_count": nodes_count,
-            "uptimes_schedule_name": f"uptimes_schedules/{parameters['id_run']}-{parameters['uptime_duration']}.json",
+            "uptimes_schedule_name": uptimes_schedule_name,
             "tasks_list": coord_name_tasks_lists[coordination_name](nodes_count - 1),
             "s": shared_memory.SharedMemory(f"shm_cps_{parameters['id_run']}-{parameters['uptime_duration']}-{t}", create=True, size=nodes_count)
         }
@@ -54,9 +68,16 @@ def run_simulation(parameters, root_results_dir):
         with open(f"/tmp/{parameters['use_case']}/{parameters['id_run']}-{parameters['uptime_duration']}/debug.txt", "w") as f:
             with redirect_stdout(f):
                 smltr.run(interferences=False)
-        print(f"{parameters['use_case']}: done")
         node_arguments["s"].close()
         node_arguments["s"].unlink()
+
+        # If test, verification
+        if test_expe:
+            with open(f"{current_dir_name}/expe_tests/{parameters['use_case']}.yaml") as f:
+                expected_results = yaml.safe_load(f)["expected_result"]
+            shared_methods.verify_results(expected_results, expe_results_dir)
+
+        print(f"{parameters['use_case']}: done")
 
         # Go to next parameter
         sweeper.done(parameters)
@@ -65,15 +86,19 @@ def run_simulation(parameters, root_results_dir):
         sweeper.skip(parameters)
 
 
-def main(root_results_dir):
+def main(test_expe):
+    if test_expe:
+        print("Testing")
+    else:
+        print("Simulation start")
+
     nb_cores = math.ceil(cpu_count() * 0.5)
-    # nb_cores = 1
     parameters = sweeper.get_next()
     with Pool(nb_cores) as pool:
         l = []
         while parameters is not None:
             print(f"registering {parameters}")
-            e = pool.apply_async(run_simulation, args=(parameters, root_results_dir))
+            e = pool.apply_async(run_simulation, args=(parameters, test_expe))
             parameters = sweeper.get_next()
             l.append(e)
         pool.close()
@@ -81,10 +106,7 @@ def main(root_results_dir):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        root_results_dir = sys.argv[1]
-    else:
-        root_results_dir = f"{os.environ['HOME']}/results-reconfiguration-esds/topologies/tests"
+    test_expe = True
     parameter_list = {
         "use_case": ["deploy-6-star"],
         "stress_conso": [1.358],
@@ -98,6 +120,6 @@ if __name__ == "__main__":
 
     # Initialise sweeper in global scope to be copied on all processes
     sweeper = ParamSweeper(
-        persistence_dir=os.path.join(root_results_dir, "sweeper"), sweeps=sweeps, save_sweeps=True
+        persistence_dir=os.path.join(os.environ['HOME'], "optim-esds-sweeper"), sweeps=sweeps, save_sweeps=True
     )
-    main(root_results_dir)
+    main(test_expe)
