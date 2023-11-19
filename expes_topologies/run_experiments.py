@@ -108,7 +108,7 @@ if __name__ == "__main__":
     parameter_list = {
         "use_case": ["deploy-star-fav", "deploy-star-nonfav", "deploy-ring-fav", "deploy-chain-fav", "deploy-chain-nonfav", "deploy-clique-fav"],
         "nodes_count": [6, 16, 31],
-        "stress_conso": [1.358],
+        "stress_conso": [2.697],
         "idle_conso": [1.339],
         "comms_conso": [0.16],
         "bandwidth": [50_000],
