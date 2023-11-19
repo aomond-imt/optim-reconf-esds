@@ -11,9 +11,9 @@ import numpy as np
 import yaml
 from icecream import ic
 
-from topologies import clique, chain, ring, star
+from topologies import clique, chain, ring, star, grid
 
-from expes_topologies.shared_methods import verify_results
+from shared_methods import verify_results
 
 env_with_pythonpath = os.environ.copy()
 env_with_pythonpath["PYTHONPATH"] = env_with_pythonpath["PYTHONPATH"] + ":" + os.path.dirname(os.path.realpath(__file__))
@@ -32,7 +32,8 @@ tests_topologies = {
         "ring_one_provide": ring(4, LORA_BW),
         "ring_three_aggregators": ring(6, LORA_BW),
         "chained_aggregator_use": chain(5, LORA_BW),
-        "concurrent_tasks": clique(4, LORA_BW)
+        "concurrent_tasks": clique(4, LORA_BW),
+        "grid-9": grid(9, LORA_BW),
     },
     "static_pull": {
         "solo_on": clique(1, LORA_BW),

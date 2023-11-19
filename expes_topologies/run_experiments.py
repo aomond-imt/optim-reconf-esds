@@ -106,8 +106,17 @@ def run_simulation(test_expe):
 if __name__ == "__main__":
     test_expe = False
     parameter_list = {
-        "use_case": ["deploy-star-fav", "deploy-star-nonfav", "deploy-ring-fav", "deploy-chain-fav", "deploy-chain-nonfav", "deploy-clique-fav"],
-        "nodes_count": [6, 16, 31],
+        "use_case": [
+            "deploy-star-fav",
+            "deploy-star-nonfav",
+            "deploy-ring-fav",
+            "deploy-chain-fav",
+            "deploy-chain-nonfav",
+            "deploy-clique-fav",
+            "deploy-grid-nonfav",
+            "deploy-grid-fav",
+        ],
+        "nodes_count": [9],
         "stress_conso": [2.697],
         "idle_conso": [1.339],
         "comms_conso": [0.16],
@@ -131,6 +140,7 @@ if __name__ == "__main__":
     print("Creating processes")
     processes = []
     for _ in range(nb_cores):
+        print("got here")
         p = Process(target=run_simulation, args=(test_expe,))
         p.start()
         processes.append(p)

@@ -43,6 +43,29 @@ def star(nodes_count, bw):
     return B, L
 
 
+def grid(nodes_count, bw):
+    if nodes_count == 4:
+        return ring(4, bw)
+
+    res = []
+    line_length = int(nodes_count**.5)
+    for node_num in range(nodes_count):
+        node_x, node_y = node_num%line_length, node_num//line_length
+        res_node = []
+        for other_node_num in range(nodes_count):
+            other_node_x, other_node_y = other_node_num % line_length, other_node_num // line_length
+            if abs(node_x - other_node_x) + abs(node_y - other_node_y) <= 1:
+                res_node.append(bw)
+            else:
+                res_node.append(0)
+        res.append(np.array(res_node))
+
+    B = np.array(res)
+    L = np.full((nodes_count, nodes_count), 0)
+
+    return B, L
+
+
 def deploy_tasks_list(nb_msrmt):
     # Aggregator
     t_sa = [["t_sa", 1.03, None]]
