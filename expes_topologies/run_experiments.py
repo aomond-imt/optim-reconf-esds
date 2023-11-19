@@ -127,7 +127,7 @@ if __name__ == "__main__":
         "idle_conso": [1.339],
         "comms_conso": [0.16],
         "bandwidth": [50_000],
-        "id_run": [0],
+        "id_run": [*range(20)],
         "uptime_duration": [60]
     }
     sweeps = sweep(parameter_list)
