@@ -9,5 +9,5 @@ for host in $hosts; do
   host_node=${host_split[0]}
   echo "starting on host $host_node"
   tmux kill-session -t "$host_node"
-  tmux new-session -d -s "$host_node" "ssh $host_node 'cd ~/optim-reconf-esds; source venv/bin/activate; cd expes_topologies; export PYTHONPATH=$PYTHONPATH:$(pwd); python3 run_experiments.py'"
+  tmux new-session -d -s "$host_node" "ssh -t $host_node 'cd ~/optim-reconf-esds; source venv/bin/activate; cd expes_topologies; export PYTHONPATH=$PYTHONPATH:$(pwd); python3 run_experiments.py'"
 done

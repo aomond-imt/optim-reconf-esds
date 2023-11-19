@@ -6,5 +6,5 @@ for host in $hosts; do
   host_node=${host_split[0]}
   echo "killing tmux session on host $host_node"
   tmux kill-session -t "$host_node"
-  ssh "$host_node" "kill $(ps -aux | pgrep -f esds)"
+  ssh -t "$host_node" "kill $(ps -aux | pgrep -f esds)"
 done
