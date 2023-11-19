@@ -105,13 +105,14 @@ def execute(api: Node):
             # Receive msgs and put them in buffer (do not put duplicates in buf)
             buf = []
             timeout = 0.01
-            code, data = api.receivet("eth0", timeout=timeout)
-            while data is not None and not is_time_up(api, uptime_end) and not is_finished(s):
-                tot_msg_rcv += 1
-                api.log(f"Add to buffer: {data}")
-                if data not in buf:
-                    buf.append(data)
+            if not is_time_up(api, uptime_end) and not is_finished(s):
                 code, data = api.receivet("eth0", timeout=timeout)
+                while data is not None and not is_time_up(api, uptime_end) and not is_finished(s):
+                    tot_msg_rcv += 1
+                    api.log(f"Add to buffer: {data}")
+                    if data not in buf:
+                        buf.append(data)
+                    code, data = api.receivet("eth0", timeout=timeout)
 
             # Treat each received msg
             for data in buf:
