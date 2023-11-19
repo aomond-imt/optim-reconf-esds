@@ -4,7 +4,7 @@ import numpy as np
 
 n = 5
 
-bwdth = 8  # Bps
+bwdth = 8  # bps
 B = np.array([[bwdth, bwdth, 0, 0, bwdth], [bwdth, bwdth, bwdth, 0, 0], [0, bwdth, bwdth, bwdth, 0], [0, 0, bwdth, bwdth, bwdth], [bwdth, 0, 0, bwdth, bwdth]])
 L = np.full((n,n), 0)
 
