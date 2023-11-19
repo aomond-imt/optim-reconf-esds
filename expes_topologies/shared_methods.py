@@ -11,7 +11,7 @@ from esds.plugins.power_states import PowerStates, PowerStatesComms
 FREQ_POLLING = 1
 
 
-def is_isolated_uptime(node_num, hour_num, uptime_schedules, nodes_count):
+def is_isolated_uptime(node_num, hour_num, uptime_schedules, nodes_count, topology):
     """
     TODO: check if an overlap can happen between current hour and previous hour
     Optimization method for simulation
@@ -26,7 +26,7 @@ def is_isolated_uptime(node_num, hour_num, uptime_schedules, nodes_count):
             n_uptime_end = n_uptime_start + n_uptime_duration
             res = min(uptime_end, n_uptime_end) - max(uptime_start, n_uptime_start)
             # print(f"With node {n_node_num}: {n_uptime_start}s/{n_uptime_end}s, res: {res} {res > 0}")
-            if res > 0:
+            if res > 0 and topology[node_num][n_node_num] > 0:
                 return False
 
     return True
@@ -109,6 +109,7 @@ def initialise_simulation(api):
     current_concurrent_tasks = tasks_list.pop(0)  # Current task trying to be run
     results_dir = api.args["results_dir"]
     nodes_count = api.args["nodes_count"]
+    topology = api.args["topology"]
 
     api.log("Parameters:")
     api.log(f"idle_conso: {idle_conso}")
@@ -119,7 +120,7 @@ def initialise_simulation(api):
     api.log(f"results_dir: {results_dir}")
     api.log(f"nodes_count: {nodes_count}")
 
-    return aggregated_send, all_uptimes_schedules, comms_cons, comms_conso, current_concurrent_tasks, idle_conso, node_cons, nodes_count, results_dir, retrieved_data, s, stress_conso, tasks_list, tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes, tot_uptimes_duration, uptimes_schedule
+    return aggregated_send, all_uptimes_schedules, comms_cons, comms_conso, current_concurrent_tasks, idle_conso, node_cons, nodes_count, results_dir, retrieved_data, s, stress_conso, tasks_list, tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes, tot_uptimes_duration, uptimes_schedule, topology
 
 
 def verify_results(expected_result, test_dir):

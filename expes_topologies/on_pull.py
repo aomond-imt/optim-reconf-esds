@@ -32,7 +32,8 @@ def execute(api: Node):
         tot_sleeping_duration,
         tot_uptimes,
         tot_uptimes_duration,
-        uptimes_schedule
+        uptimes_schedule,
+        topology
     ) = initialise_simulation(api)
 
     deps_to_retrieve = set()
@@ -96,6 +97,18 @@ def execute(api: Node):
                     else:
                         api.log(f"Next concurrent tasks: {current_concurrent_tasks}")
                         api.log(f"deps_to_retrieve: {deps_to_retrieve}")
+
+            if is_isolated_uptime(api.node_id, tot_uptimes, all_uptimes_schedules, nodes_count, topology) and not is_finished(s) and not is_time_up(api, uptime_end):
+                remaining_t = remaining_time(api, uptime_end)
+                api.wait(remaining_t)
+                th_aggregated_send = remaining_t / ((257 / 6250) + 0.01 + FREQ_POLLING)
+                aggregated_send += int(th_aggregated_send)
+
+                # Check if sending an additional message doesn't cross the deadline, and add it if it's the case
+                if int(th_aggregated_send) - th_aggregated_send <= 257 / 6250:
+                    aggregated_send += 1
+
+                api.log(f"Isolated uptime, simulating {th_aggregated_send} sends")
 
             # Ask for missing deps
             if len(deps_to_retrieve) > 0 and not is_time_up(api, uptime_end):

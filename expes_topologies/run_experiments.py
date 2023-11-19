@@ -74,6 +74,7 @@ def run_simulation(test_expe):
                 "nodes_count": nodes_count,
                 "uptimes_schedule_name": uptimes_schedule_name,
                 "tasks_list": tasks_list(nodes_count - 1),
+                "topology": B,
                 "s": shared_memory.SharedMemory(f"shm_cps_{parameters['id_run']}-{parameters['uptime_duration']}-{t}", create=True, size=nodes_count)
             }
             sys.path.append("..")
@@ -116,11 +117,11 @@ if __name__ == "__main__":
             "deploy-star-fav",
             "deploy-star-nonfav",
             "deploy-ring-fav",
-            # "deploy-chain-fav",
-            # "deploy-chain-nonfav",
+            "deploy-chain-fav",
+            "deploy-chain-nonfav",
             "deploy-clique-fav",
-            # "deploy-grid-nonfav",
-            # "deploy-grid-fav",
+            "deploy-grid-nonfav",
+            "deploy-grid-fav",
         ],
         "topology_size": ["small", "medium", "large"],
         "stress_conso": [2.697],

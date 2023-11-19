@@ -79,6 +79,7 @@ def run_simulation(test_name, tasks_list, type_comms):
         "uptimes_schedule_name": f"tests/{type_comms}/{test_name}.json",
         "tasks_list": tasks_list,
         "neighbor_nodes": node_neighbors,
+        "topology": B,
         "s": shared_memory.SharedMemory(f"shm_cps_{test_name}", create=True, size=nodes_count)
     }
     sys.path.append("..")
