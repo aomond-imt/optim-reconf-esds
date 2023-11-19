@@ -4,8 +4,7 @@ import shutil
 import sys
 import traceback
 from contextlib import redirect_stdout
-from multiprocessing import cpu_count, shared_memory
-from multiprocessing.pool import Pool
+from multiprocessing import cpu_count, shared_memory, Process
 import time
 from os.path import exists
 
@@ -34,6 +33,7 @@ tasks_list_tplgy = {
 
 
 def run_simulation(test_expe):
+    print("Starting simulation")
     parameters = sweeper.get_next()
     while parameters is not None:
         print(f"Doing param {parameters}")
@@ -128,8 +128,11 @@ if __name__ == "__main__":
         print("Simulation start")
 
     nb_cores = math.ceil(cpu_count() * 0.5)
-    with Pool(nb_cores) as pool:
-        for _ in range(nb_cores):
-            pool.apply_async(run_simulation, args=(test_expe,))
-        pool.close()
-        pool.join()
+    print("Creating processes")
+    processes = []
+    for _ in range(nb_cores):
+        p = Process(target=run_simulation, args=(test_expe,))
+        p.start()
+        processes.append(p)
+    for p in processes:
+        p.join()
