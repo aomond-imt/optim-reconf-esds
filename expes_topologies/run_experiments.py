@@ -122,7 +122,7 @@ if __name__ == "__main__":
             "deploy-grid-nonfav",
             "deploy-grid-fav",
         ],
-        "topology_size": ["small", "medium", "large"],
+        "topology_size": ["small"],
         "stress_conso": [2.697],
         "idle_conso": [1.339],
         "comms_conso": [0.16],
