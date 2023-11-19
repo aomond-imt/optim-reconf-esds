@@ -39,6 +39,8 @@ def execute(api: Node):
     for _, _, task_dep in current_concurrent_tasks:
         deps_to_retrieve.add(task_dep)
 
+    api.log(f"deps_to_retrieve: {deps_to_retrieve}")
+
     deps_retrieved = {None}
     local_termination = 0
 
@@ -48,6 +50,7 @@ def execute(api: Node):
         node_cons.set_power(0)
         api.turn_off()
         sleeping_duration = uptime - c(api)
+        api.log(f"Sleeping from {c(api)} to {uptime}")
         api.wait(sleeping_duration)
         tot_sleeping_duration += sleeping_duration
 
@@ -91,19 +94,21 @@ def execute(api: Node):
                         local_termination = c(api)
                         api.log("All tasks done")
                     else:
-                        api.log(f"New concurrent tasks: {current_concurrent_tasks}")
+                        api.log(f"Next concurrent tasks: {current_concurrent_tasks}")
                         api.log(f"deps_to_retrieve: {deps_to_retrieve}")
 
             # Ask for missing deps
             if len(deps_to_retrieve) > 0 and not is_time_up(api, uptime_end):
                 api.sendt("eth0", ("req", deps_to_retrieve), 257, 0, timeout=remaining_time(api, uptime_end))
+                tot_msg_sent += 1
 
             # Receive msgs and put them in buffer (do not put duplicates in buf)
             buf = []
             timeout = 0.01
             code, data = api.receivet("eth0", timeout=timeout)
             while data is not None and not is_time_up(api, uptime_end) and not is_finished(s):
-                api.log(f"Log: received {data}")
+                tot_msg_rcv += 1
+                api.log(f"Add to buffer: {data}")
                 if data not in buf:
                     buf.append(data)
                 code, data = api.receivet("eth0", timeout=timeout)
@@ -116,6 +121,7 @@ def execute(api: Node):
                     if len(deps_to_send) > 0:
                         api.log(f"Sending deps: {deps_to_send}")
                         api.sendt("eth0", ("res", deps_to_send), 257, 0, timeout=remaining_time(api, uptime_end))
+                        tot_msg_sent += 1
                     deps_to_retrieve.update(deps.difference(deps_retrieved))
                 if type_msg == "res":
                     for dep in deps:

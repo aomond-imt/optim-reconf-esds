@@ -110,6 +110,15 @@ def initialise_simulation(api):
     results_dir = api.args["results_dir"]
     nodes_count = api.args["nodes_count"]
 
+    api.log("Parameters:")
+    api.log(f"idle_conso: {idle_conso}")
+    api.log(f"stress_conso: {stress_conso}")
+    api.log(f"comms_conso: {comms_conso}")
+    api.log(f"uptimes_schedule_name: {uptimes_schedule_name}")
+    api.log(f"tasks_list: {tasks_list}")
+    api.log(f"results_dir: {results_dir}")
+    api.log(f"nodes_count: {nodes_count}")
+
     return aggregated_send, all_uptimes_schedules, comms_cons, comms_conso, current_concurrent_tasks, idle_conso, node_cons, nodes_count, results_dir, retrieved_data, s, stress_conso, tasks_list, tot_msg_rcv, tot_msg_sent, tot_reconf_duration, tot_sleeping_duration, tot_uptimes, tot_uptimes_duration, uptimes_schedule
 
 
