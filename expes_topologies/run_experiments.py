@@ -13,14 +13,15 @@ import yaml
 from execo_engine import ParamSweeper, sweep
 
 import shared_methods
-from topologies import clique, chain, ring, star, deploy_tasks_list_agg_0, deploy_tasks_list_agg_middle
+from topologies import clique, chain, ring, star, grid, deploy_tasks_list_agg_0, deploy_tasks_list_agg_middle, deploy_tasks_list_grid_fav
 
-# network_topologies = {
-#     "clique": clique,
-#     "chain": chain,
-#     "ring": ring,
-#     "star": star
-# }
+topology_sizes = {
+    "clique": {"small": 6, "medium": 16, "large": 31},
+    "chain": {"small": 6, "medium": 16, "large": 31},
+    "ring": {"small": 6, "medium": 16, "large": 31},
+    "star": {"small": 6, "medium": 16, "large": 31},
+    "grid": {"small": 9, "medium": 16, "large": 25}
+}
 
 tasks_list_tplgy = {
     "deploy-star-fav": (deploy_tasks_list_agg_0, star),
@@ -29,6 +30,8 @@ tasks_list_tplgy = {
     "deploy-chain-fav": (deploy_tasks_list_agg_middle, chain),
     "deploy-chain-nonfav": (deploy_tasks_list_agg_0, chain),
     "deploy-clique-fav": (deploy_tasks_list_agg_0, clique),
+    "deploy-grid-fav": (deploy_tasks_list_grid_fav, grid),
+    "deploy-grid-nonfav": (deploy_tasks_list_agg_0, grid),
 }
 
 
@@ -38,7 +41,7 @@ def run_simulation(test_expe):
     while parameters is not None:
         print(f"Doing param {parameters}")
         root_results_dir = f"{os.environ['HOME']}/results-reconfiguration-esds/topologies/{['paper', 'tests'][test_expe]}"
-        results_dir = f"{parameters['use_case']}-{parameters['nodes_count']}-{parameters['uptime_duration']}/{parameters['id_run']}"
+        results_dir = f"{parameters['use_case']}-{parameters['topology_size']}-{parameters['uptime_duration']}/{parameters['id_run']}"
         expe_results_dir = f"{root_results_dir}/{results_dir}"
         tmp_results_dir = f"/tmp/{results_dir}"
         os.makedirs(expe_results_dir, exist_ok=True)
@@ -48,7 +51,7 @@ def run_simulation(test_expe):
         try:
             # Setup parameters
             coordination_name, network_topology, _ = parameters["use_case"].split("-")
-            nodes_count = int(parameters["nodes_count"])
+            nodes_count = topology_sizes[network_topology][parameters["topology_size"]]
             tasks_list, tplgy = tasks_list_tplgy[parameters["use_case"]]
             B, L = tplgy(nodes_count, parameters["bandwidth"])
             smltr = esds.Simulator({"eth0": {"bandwidth": B, "latency": L, "is_wired": False}})
@@ -82,7 +85,10 @@ def run_simulation(test_expe):
                 with redirect_stdout(f):
                     smltr.run(interferences=False)
             node_arguments["s"].close()
-            node_arguments["s"].unlink()
+            try:
+                node_arguments["s"].unlink()
+            except FileNotFoundError as e:
+                traceback.print_exc()
 
             # If test, verification
             if test_expe:
@@ -116,7 +122,7 @@ if __name__ == "__main__":
             "deploy-grid-nonfav",
             "deploy-grid-fav",
         ],
-        "nodes_count": [9],
+        "topology_size": ["small", "medium", "large"],
         "stress_conso": [2.697],
         "idle_conso": [1.339],
         "comms_conso": [0.16],

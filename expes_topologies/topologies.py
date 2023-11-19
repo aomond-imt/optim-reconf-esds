@@ -105,3 +105,15 @@ def deploy_tasks_list_agg_middle(nb_msrmt):
         aggtor,
         *msrmts[nb_msrmt//2:]
     ]
+
+
+def deploy_tasks_list_grid_fav(nb_msrmt):
+    aggtor, msrmts = deploy_tasks_list(nb_msrmt)
+    nodes_count = nb_msrmt + 1
+    line_width = int(nodes_count**.5)
+    agg_num = (line_width//2) + line_width * (line_width//2)
+    return [
+        *msrmts[:agg_num],
+        aggtor,
+        *msrmts[agg_num:]
+    ]
